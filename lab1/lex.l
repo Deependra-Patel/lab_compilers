@@ -29,7 +29,7 @@ WHILE         								while
 FOR           								for
 
 %%
-{whitespace}								//return WHITESPACE;
+{whitespace}								
 {symbols}									return SYMBOL;
 {VOID}										return VOID;
 {INT}										return INT;
