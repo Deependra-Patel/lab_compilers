@@ -1,4 +1,4 @@
-whitespace									[ \t\n]
+whitespace									[ \t\n]+
 C-integer-constant-1						[1-9][0-9]*
 C-integer-constant-2						0[bB][01]*
 C-integer-constant-3						0[0-7]*
@@ -7,7 +7,6 @@ integer-part								[0-9]*
 fractional-part								[0-9]*
 exponent-part								([eE][+-][0-9]*)|([eE][0-9]*)
 floating-point-constant						{integer-part}\.{fractional-part}{exponent-part}
-whitespaces									[ \t\n]+
 symbols										['('')'',''['']''{''}'';''=''<''>'-'''+''*''/''!']
 VOID										void
 INT											int
@@ -43,9 +42,10 @@ FOR           								for
 {INC_OP}                                	return INC_OP;
 {INT_CONST}                             	return INT_CONST;
 {FLOAT_CONST}                           	return FLOAT_CONST;
-{STRING_LITERAL}                        	return STRING_LITERAL;
+//{STRING_LITERAL}                        	return STRING_LITERAL;
 {IF}                                    	return IF;
 {ELSE}                                  	return ELSE;
 {WHILE}                                 	return WHILE;
 {FOR}                                   	return FOR;
 {IDENTIFIER}                            	return IDENTIFIER;
+.                                           return OTHER;
