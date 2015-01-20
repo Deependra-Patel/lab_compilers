@@ -42,7 +42,7 @@ FOR           								for
 {INC_OP}                                	return INC_OP;
 {INT_CONST}                             	return INT_CONST;
 {FLOAT_CONST}                           	return FLOAT_CONST;
-//{STRING_LITERAL}                        	return STRING_LITERAL;
+{STRING_LITERAL}                        	return STRING_LITERAL;
 {IF}                                    	return IF;
 {ELSE}                                  	return ELSE;
 {WHILE}                                 	return WHILE;
