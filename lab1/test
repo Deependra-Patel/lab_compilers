@@ -1,6 +1,23 @@
-void"
-dsfsd
-$
-int
-float
-
+int fun(int x){
+	int x = -100;
+	x = x + 20;
+	if(x >= 3 || x<=45|| x++ && x<6)
+		return 0;
+	return x;
+	1.
+	23.1
+	01.456
+	12.e45
+	12.45e12
+	12.45e-12
+	12.45e+12
+	.1e1
+	343
+	.
+}
+int main ()
+{
+	int x;
+	x = 1.2e5;
+	string x = "deependra \t dfsd \n dfsd \" fdsfs \\ patel";
+}

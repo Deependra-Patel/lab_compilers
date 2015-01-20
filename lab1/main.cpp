@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string.h>
+
 #include "Scanner.h"
 using namespace std;
 int main()
@@ -36,8 +38,11 @@ int main()
 			cout<<"not equal: "<< text <<endl;
 			break;
 		case Scanner::LE_OP:
-			cout<<"less than: "<< text <<endl;
+			cout<<"less than equal: "<< text <<endl;
 			break;
+		case Scanner::GE_OP:
+			cout<<"greater than equal: "<< text <<endl;
+			break;			
 		case Scanner::INC_OP:
 			cout<<"increment: "<< text <<endl;
 			break;

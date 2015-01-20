@@ -1,6 +1,6 @@
 all:    lex.cc  main.cpp	
-	g++   --std=c++0x lex.cc main.cpp
-	make run
+		g++   --std=c++0x lex.cc main.cpp
+		make run
 
 run:
 	./a.out < test
