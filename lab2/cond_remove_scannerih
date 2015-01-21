@@ -1,3 +1,3 @@
-if [ -e Scanner.h ] 
-  then rm Scanner.h;
+if [ -e Scanner.ih ] 
+  then rm Scanner.ih;
 fi
