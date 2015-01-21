@@ -1,3 +1,5 @@
-mov %ebp $45
+void f() {
+	 return 0;
+}
 
 

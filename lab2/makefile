@@ -7,6 +7,7 @@ all:    lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Pars
 lex.cc: lex.l Scanner.ih 
 	./cond_remove_scannerih; 
 	flexc++ lex.l; 
+	#sed -i '/int lex()/r enums' Scanner.h
 	sed -i '/include/a #include "Parserbase.h"' Scanner.ih; 
 
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
