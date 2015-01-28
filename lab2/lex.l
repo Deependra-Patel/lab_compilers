@@ -9,7 +9,6 @@ integer-part								[0-9]*
 fractional-part								[0-9]*
 exponent-part								([eE][+-][0-9]*)|([eE][0-9]*)
 floating-point-constant						[+-]?([0-9]+\.[0-9]*{exponent-part}?)|([0-9]*\.[0-9]+{exponent-part}?)
-VOID										void
 INT											int
 FLOAT										float
 IDENTIFIER									[[:alpha:]_][[:alpha:][:digit:]_]*
@@ -21,8 +20,8 @@ NE_OP										"!="
 LE_OP										"<="
 GE_OP										">="
 INC_OP										"++"
-INT_CONST									[+-]?({C-integer-constant-1}|{C-integer-constant-2}|{C-integer-constant-3}|{C-integer-constant-4})
-FLOAT_CONST									{floating-point-constant}
+INT_CONSTANT									[+-]?({C-integer-constant-1}|{C-integer-constant-2}|{C-integer-constant-3}|{C-integer-constant-4})
+FLOAT_CONSTANT									{floating-point-constant}
 IF            								if
 ELSE          								else
 WHILE         								while
@@ -31,27 +30,27 @@ symbols										['('')'',''['']''{''}'';''=''<''>'-'''+''*''/''!']
 
 %%
 {whitespace}		
-{STRING_LITERAL}                        	return STRING_LITERAL;						
-{VOID}										return VOID;
-{INT}										return INT;
-{FLOAT}                                 	return FLOAT;
-{RETURN}                                	return RETURN;
-{OR_OP}                                 	return OR_OP;
-{AND_OP}                                	return AND_OP;
-{EQ_OP}                                 	return EQ_OP;
-{NE_OP}                                 	return NE_OP;
-{LE_OP}                                 	return LE_OP;
-{GE_OP}                                 	return GE_OP;
-{INC_OP}                                	return INC_OP;
-{IF}                                    	return IF;
-{ELSE}                                  	return ELSE;
-{WHILE}                                 	return WHILE;
-{FOR}                                   	return FOR;
-{INT_CONST}                             	return INT_CONSTANT;
-{FLOAT_CONST}                           	return FLOAT_CONST;
-{symbols}									return SYMBOL;
-{IDENTIFIER}                            	return IDENTIFIER;
-.                                           return OTHER;
+{STRING_LITERAL}                        	return Parser::STRING_LITERAL;						
+void										return Parser::VOID;
+{INT}										return Parser::INT;
+{FLOAT}                                 	return Parser::FLOAT;
+{RETURN}	                               	return Parser::RETURN;
+{OR_OP}                                 	return Parser::OR_OP;
+{AND_OP}                                	return Parser::AND_OP;
+{EQ_OP}                                 	return Parser::EQ_OP;
+{NE_OP}                                 	return Parser::NE_OP;
+{LE_OP}                                 	return Parser::LE_OP;
+{GE_OP}                                 	return Parser::GE_OP;
+{INC_OP}                                	return Parser::INC_OP;
+{IF}                                    	return Parser::IF;
+{ELSE}                                  	return Parser::ELSE;
+{WHILE}                                 	return Parser::WHILE;
+{FOR}                                   	return Parser::FOR;
+{INT_CONSTANT}                             	return Parser::INT_CONSTANT;
+{FLOAT_CONSTANT}                           	return Parser::FLOAT_CONSTANT;
+{symbols}									return Scanner::matched()[0];
+{IDENTIFIER}                            	return Parser::IDENTIFIER;
+.                                           return Parser::OTHER;
 
 
 // There may be some flexer directives here
@@ -64,11 +63,11 @@ symbols										['('')'',''['']''{''}'';''=''<''>'-'''+''*''/''!']
 //"%"(ebp|esp|edx|eax|esp)                    return Parser::REGISTER;     
 //[[:alpha:]][[:alnum:]]*                     return Parser::SYMBOL;
 //("."?)[[:alpha:]][[:alnum:]]*               return Parser::IMMSYMBOL;
-//"+"                                         return '+';
-//","                                         return ',';
-//"("                                         return '(';
-//")"                                         return ')';
-//":"                                         return ':';
-//"\n"                                        return '\n';
+//"+"                                         return Parser::'+';
+//","                                         return Parser::',';
+//"("                                         return Parser::'(';
+//")"                                         return Parser::')';
+//":"                                         return Parser::':';
+//"\n"                                        return Parser::'\n';
 //.                                           
 

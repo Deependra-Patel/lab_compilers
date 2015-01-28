@@ -5,13 +5,15 @@ all:    lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Pars
         
 
 lex.cc: lex.l Scanner.ih 
-	./cond_remove_scannerih; 
+	./cond_remove_scannerh; 
 	flexc++ lex.l; 
-	#sed -i '/int lex()/r enums' Scanner.h
+	sed -i '/int lex()/r enums' Scanner.h
 	sed -i '/include/a #include "Parserbase.h"' Scanner.ih; 
 
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
 	bisonc++  parse.y; 
+	sed -i 's/#include <iomanip>/#include <iomanip>\nint counter_global = 0;/g' parse.cc
+
 #	bisonc++   --construction -V parse.y; 
 #	sed -i '/ifndef/a #include "tree_util.hh"' Parserbase.h;
 #	sed -i '/ifndef/a #include "tree.hh"' Parserbase.h;
@@ -26,5 +28,11 @@ Scanner.h: lex.l
 Scannerbase.h: lex.l
 
 distClean:
-	rm a.out lex.cc junk Parser* Scanner* parse.cc 
+	rm -f a.out lex.cc junk Parser* Scanner* parse.cc 
 
+lex:   lex.cc  main.cc
+		g++   --std=c++0x lex.cc main.cc
+		make run
+
+run:
+	./a.out < test-assembly

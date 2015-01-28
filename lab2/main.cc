@@ -60,7 +60,7 @@ int main (int argc, char** arg)
 		case Scanner::INT_CONSTANT:
 			cout<<"int const: "<< text <<endl;
 			break;
-		case Scanner::FLOAT_CONST:
+		case Scanner::FLOAT_CONSTANT:
 			cout<<"float const: "<< text <<endl;
 			break;
 		case Scanner::STRING_LITERAL:

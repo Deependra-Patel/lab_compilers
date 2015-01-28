@@ -1,3 +1,0 @@
-if [ -e Scanner.ih ] 
-  then rm Scanner.ih;
-fi

@@ -1,5 +1,4 @@
-void f() {
-	 return 0;
+int main(float x){
+
+		return i;
 }
-
-

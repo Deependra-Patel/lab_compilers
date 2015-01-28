@@ -2,28 +2,30 @@
 %scanner Scanner.h
 %scanner-token-function d_scanner.lex()
 
-%token INT FLOAT IDENTIFIER INT_CONSTANT FLOAT_CONSTANT RETURN OR_OP AND_OP EQ_OP NE_OP LE_OP GE_OP INC_OP STRING_LITERAL IF ELSE WHILE FOR VOID
- 
+%token VOID INT FLOAT IDENTIFIER INT_CONSTANT FLOAT_CONSTANT RETURN OR_OP AND_OP EQ_OP NE_OP LE_OP GE_OP INC_OP STRING_LITERAL IF ELSE WHILE FOR OTHER SYMBOL
+
 
 
 %%
+
+
 translation_unit
 	: function_definition
 	| translation_unit function_definition
 	;
 
 function_definition
-	: type_specifier fun_declarator compound_statement
+	: type_specifier fun_declarator compound_statement {std::cout<<"dldldl"<<$1<<counter_global;}
 	;
 
 type_specifier
-	: VOID
-	| INT
-	| FLOAT
+	: VOID 
+	| INT {$$ = counter_global; counter_global++; }
+	| FLOAT 
 	;
 
 fun_declarator
-	: IDENTIFIER '(' parameter_list ')'
+	: IDENTIFIER '(' parameter_list ')' 
 	| IDENTIFIER '(' ')'
 	;
 
@@ -48,17 +50,32 @@ constant_expression
 
 compound_statement
 	: '{' '}'
-	| '{' statement_list '}'
+	| '{' statement_list '}' {
+		$$ = counter_global++;
+	 	std::cout<<"compound_statement"<<$$<<"->{{;statement_list"<<$2<<";}}\n";
+	 	
+	 }
     | '{' declaration_list statement_list '}'
 	;
 
 statement_list
-	: statement
+	: statement 
+	{
+		$$ = 4;
+		std::cout<<"statement_list->statement\n";
+	}
 	| statement_list statement
+	{
+		std::cout<<"statement_list->statement_list\n statement_list->statement\n";
+	}	
 	;
 
 statement
    : compound_statement
+   {
+		std::cout<<"statement_list->statement_list\n statement_list->statement\n";   		
+
+   }
    | selection_statement
    | iteration_statement
    | assignment_statement
