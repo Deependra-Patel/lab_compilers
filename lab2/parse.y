@@ -8,106 +8,284 @@
 
 %%
 
-
 translation_unit
-	: function_definition
-	| translation_unit function_definition
+	: function_definition {
+		$$ = counter_global++;
+		myfile << "translation_unit"<<$$<<"->"<<"function_definition"<<$1<<";\n";	
+		myfile << "translation_unit"<<$$<<"[label = translation_unit];\n";			
+	}
+	| translation_unit function_definition{
+		$$ = counter_global++;
+		myfile << "translation_unit"<<$$<<"->"<<"{translation_unit"<<$1<<"; function_definition"<<$2<<"};\n";
+		myfile << "translation_unit"<<$$<<"[label = translation_unit];\n";			
+	}
 	;
 
 function_definition
-	: type_specifier fun_declarator compound_statement {std::cout<<"dldldl"<<$1<<counter_global;}
+	: type_specifier fun_declarator compound_statement {
+		$$ = counter_global++;
+		myfile << "function_definition"<<$$<<"->"<<"{type_specifier"<<$1<<"; fun_declarator"<<$2<<"; compound_statement"<<$3<<"};\n";	
+		myfile << "function_definition"<<$$<<"[label = function_definition];\n";
+	}
 	;
 
 type_specifier
-	: VOID 
-	| INT
-	| FLOAT 
+	: VOID {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->VOID"<<$$<<";\n";
+		myfile << "VOID"<<$$<<"[label = VOID];\n";						
+		myfile << "type_specifier"<<$$<<"[label = typespecifier];\n";
+	}
+	| INT {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->INT"<<$$<<";\n";
+		myfile << "INT"<<$$<<"[label = INT];\n";						
+		myfile << "type_specifier"<<$$<<"[label = typespecifier];\n";		
+	}
+	| FLOAT {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->FLOAT"<<$$<<";\n";
+		myfile << "FLOAT"<<$$<<"[label = FLOAT];\n";				
+		myfile << "type_specifier"<<$$<<"[label = typespecifier];\n";		
+	}
 	;
 
 fun_declarator
-	: IDENTIFIER '(' parameter_list ')' 
-	| IDENTIFIER '(' ')'
+	: IDENTIFIER '(' parameter_list ')' {
+		$$ = counter_global++;
+		myfile << "fun_declarator"<<$$<<"->{IDENTIFIER"<<$$<<"; \"("<<$$<<"\"; parameter_list"<<$3<<"; \")"<<$$<<"\"};\n";
+		myfile << "\"("<<$$<<"\"[label=\"(\"];\n";
+		myfile << "\")"<<$$<<"\"[label=\")\"];\n";	
+		myfile << "IDENTIFIER"<<$$<<"[label = IDENTIFIER];\n";							
+		myfile << "fun_declarator"<<$$<<"[label = fun_declarator];\n";							
+	}
+	| IDENTIFIER '(' ')'{
+		$$ = counter_global++;
+		myfile << "fun_declarator"<<$$<<"->{IDENTIFIER"<<$$<<";\"("<<$$<<"\"; \")"<<$$<<"\"};\n";
+		myfile << "fun_declarator"<<$$<<"[label = fun_declarator];\n";
+		myfile << "IDENTIFIER"<<$$<<"[label = IDENTIFIER];\n";							
+		myfile << "\"("<<$$<<"\"[label=\"(\"];\n";
+		myfile << "\")"<<$$<<"\"[label=\")\"];\n";		
+	}
 	;
 
 parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
+	: parameter_declaration{
+		$$ = counter_global++;
+		myfile << "parameter_list"<<$$<<"->parameter_declaration"<<$1<<";\n";
+		myfile << "parameter_list"<<$$<<"[label = parameter_list];\n";					
+	}
+	| parameter_list ',' parameter_declaration{
+		$$ = counter_global++;
+		myfile << "parameter_list"<<$$<<"->{parameter_list"<<$1<<"; ,"<<$$<<";parameter_declaration"<<$1<<"};\n";
+		myfile << ","<<$$<<"[label = ,];\n";									
+		myfile << "parameter_list"<<$$<<"[label = parameter_list];\n";							
+	}
 	;
-
 parameter_declaration
-	: type_specifier declarator
+	: type_specifier declarator{
+		$$ = counter_global++;
+		myfile << "parameter_declaration"<<$$<<"->"<<"{type_specifier"<<$1<<"; declarator"<<$2<<"};\n";		
+		myfile << "parameter_declaration"<<$$<<"[label = parameter_declaration];\n";			
+	}
 	;
 
 declarator
-	: IDENTIFIER
-	| declarator '[' constant_expression ']'
+	: IDENTIFIER{
+		$$ = counter_global++;
+		myfile << "declarator"<<$$<<"->"<<"IDENTIFIER"<<$$<<";\n";
+		myfile << "declarator"<<$$<<"[label = declarator];\n";				
+	}
+	| declarator '[' constant_expression ']'{
+		$$ = counter_global++;
+		myfile << "declarator"<<$$<<"->"<<"{declarator"<<$1<<"; \"["<<$$<<"\"; constant_expression"<<$3<<";  \"]"<<$$<<"};\n";
+		myfile << "\"[\""<<$$<<"[label = \"[\"];\n";
+		myfile << "\"]\""<<$$<<"[label = \"]\"];\n";							
+		myfile << "declarator"<<$$<<"[label = declarator];\n";						
+	}
 	;
 
 constant_expression
-	: INT_CONSTANT
-	| FLOAT_CONSTANT
+	: INT_CONSTANT{
+		$$ = counter_global++;
+		myfile << "constant_expression"<<$$<<"->"<<"INT_CONSTANT"<<$$<<";\n";
+		myfile << "constant_expression"<<$$<<"[label = constant_expression];\n";
+		myfile << "INT_CONSTANT"<<$$<<"[label = INT_CONSTANT];\n";				
+
+	}
+	| FLOAT_CONSTANT{
+		$$ = counter_global++;
+		myfile << "constant_expression"<<$$<<"->"<<"FLOAT_CONSTANT"<<$$<<";\n";	
+		myfile << "constant_expression"<<$$<<"[label = constant_expression];\n";
+		myfile << "FLOAT_CONSTANT"<<$$<<"[label = FLOAT_CONSTANT];\n";	
+	}
 	;
 
 compound_statement
-	: '{' '}'
+	: '{' '}' {
+		$$ = counter_global++;
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"}\"];\n";
+		myfile << "compound_statement"<<$$<<"[label = compound_statement];\n";					
+	}
 	| '{' statement_list '}' {
 		$$ = counter_global++;
-	 	std::cout<<"compound_statement"<<$$<<"->{{;statement_list"<<$2<<";}}\n";
-	 	
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; statement_list"<<$2<<"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"}\"];\n";
+		myfile << "compound_statement"<<$$<<"[label = compound_statement];\n";					
 	 }
-    | '{' declaration_list statement_list '}'
+    | '{' declaration_list statement_list '}'{
+    	$$ = counter_global++;
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; declaration_list"<<$2<<", statement_list"<<$3<<"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"}\"];\n";
+		myfile << "compound_statement"<<$$<<"[label = compound_statement];\n";					
+    }
 	;
 
 statement_list
 	: statement 
 	{
-		$$ = 4;
-		std::cout<<"statement_list->statement\n";
+		$$ = counter_global++;
+		myfile << "statement_list"<<$$<<"->{statement"<<$1<<"};\n";
+		myfile << "statement_list"<<$$<<"[label = statement_list];\n";					
 	}
 	| statement_list statement
 	{
-		std::cout<<"statement_list->statement_list\n statement_list->statement\n";
+		$$ = counter_global++;
+		myfile << "statement_list"<<$$<<"->{statement_list"<<$1<<"; "<<"statement"<<$2<<"};\n";
+		myfile << "statement_list"<<$$<<"[label = statement_list];\n";					
 	}	
 	;
 
 statement
    : compound_statement
-   {
-		std::cout<<"statement_list->statement_list\n statement_list->statement\n";   		
-
+	{
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> compound_statement"<<$1<<";\n";   
+		myfile << "statement"<<$$<<"[label = statement];\n";							
    }
    | selection_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> selection_statement"<<$1<<";\n"; 
+		myfile << "statement"<<$$<<"[label = statement];\n";					
+   }
    | iteration_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> iteration_statement"<<$1<<";\n";   
+		myfile << "statement"<<$$<<"[label = statement];\n";						
+   }
    | assignment_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> assignment_statement"<<$1<<";\n";  
+		myfile << "statement"<<$$<<"[label = statement];\n";								 		
+	}
    | RETURN expression ';'
+   {
+   		$$ = counter_global++;
+		myfile << "statement"<<$$<<" ->{RETURN"<<$$<<"; expression"<<$2<<"; \";"<<$$<<"\"};\n";  
+		myfile << "statement"<<$$<<"[label = statement];\n";	
+		myfile << "\";"<<$$<<"\"[label = \";\"];\n";
+		myfile << "RETURN"<<$$<<"[label = RETURN];\n";					
+   }
    ;
 
+
 assignment_statement
-	: ';'
-	|  l_expression '=' expression ';'
+	: ';'{
+		$$ = counter_global ++;
+		myfile << "assignment_statement"<<$$<<" -> "<<"\";"<<$$<<"\";\n";
+		myfile << "\";"<<$$<<"\"[label = \";\"];\n";
+		myfile << "assignment_statement"<<$$<<"[label = assignment_statement];\n";
+	}
+	|  l_expression '=' expression ';'{
+		$$ = counter_global ++;
+		myfile << "assignment_statement"<<$$<<" -> "<<"{l_expression"<<$1<<";\"="<<$$<<"\"; expression"<<$3<<";\";"<<$$<<"\"};\n";
+		myfile << "\";"<<$$<<"\"[label = \";\"];\n";	
+		myfile << "\"="<<$$<<"\"[label = \"=\"];\n";
+		myfile << "assignment_statement"<<$$<<"[label = assignment_statement];\n";	
+	}				
 	;
 
 expression
-	: logical_and_expression
-	| expression OR_OP logical_and_expression
+	: logical_and_expression{
+		$$ = counter_global ++;
+		myfile << "expression"<<$$<<" -> logical_and_expression"<<$1<<";\n";
+		myfile << "expression"<<$$<<"[label = expression];\n";
+	}
+	| expression OR_OP logical_and_expression{
+		$$ = counter_global ++;
+		myfile << "expression"<<$$<<" -> {expression"<<$1<<"; OR_OP"<<$$<<";logical_and_expression"<<$3<<"};\n";
+		myfile << "expression"<<$$<<"[label = expression];\n";	
+		myfile << "OR_OP"<<$$<<"[label = OR_OP];\n";			
+	}
 	;
 
 logical_and_expression
-	: equality_expression
-	| logical_and_expression AND_OP equality_expression
+	: equality_expression{
+		$$ = counter_global ++;
+		myfile << "logical_and_expression"<<$$<<" -> equality_expression"<<$1<<";\n";
+		myfile << "logical_and_expression"<<$$<<"[label = logical_and_expression];\n";		
+	}
+	| logical_and_expression AND_OP equality_expression{
+		$$ = counter_global ++;
+		myfile << "logical_and_expression"<<$$<<" -> {logical_and_expression"<<$1<<"; AND_OP"<<$$<<";equality_expression"<<$3<<"};\n";
+		myfile << "logical_and_expression"<<$$<<"[label = logical_and_expression];\n";	
+		myfile << "AND_OP"<<$$<<"[label = AND_OP];\n";					
+	}
 	;
 
 equality_expression
-	: relational_expression
-	| equality_expression EQ_OP relational_expression
-	| equality_expression NE_OP relational_expression
+	: relational_expression{
+		$$ = counter_global ++;
+		myfile << "equality_expression"<<$$<<" -> relational_expression"<<$1<<";\n";
+		myfile << "equality_expression"<<$$<<"[label = equality_expression];\n";				
+	}
+	| equality_expression EQ_OP relational_expression{
+		$$ = counter_global ++;
+		myfile << "equality_expression"<<$$<<" -> {equality_expression"<<$1<<"; EQ_OP"<<$$<<";relational_expression"<<$3<<"};\n";
+		myfile << "equality_expression"<<$$<<"[label = equality_expression];\n";	
+		myfile << "EQ_OP"<<$$<<"[label = EQ_OP];\n";					
+	}
+	| equality_expression NE_OP relational_expression{
+		$$ = counter_global ++;
+		myfile << "equality_expression"<<$$<<" -> {equality_expression"<<$1<<"; NE_OP"<<$$<<";relational_expression"<<$3<<"};\n";
+		myfile << "equality_expression"<<$$<<"[label = equality_expression];\n";	
+		myfile << "NE_OP"<<$$<<"[label = NE_OP];\n";							
+	}
 	;
 relational_expression
-	: additive_expression
-	| relational_expression '<' additive_expression
-	| relational_expression '>' additive_expression
-	| relational_expression LE_OP additive_expression
-	| relational_expression GE_OP additive_expression
+	: additive_expression{
+		$$ = counter_global ++;
+		myfile << "relational_expression"<<$$<<" -> additive_expression"<<$1<<";\n";
+		myfile << "relational_expression"<<$$<<"[label = relational_expression];\n";						
+	}
+	| relational_expression '<' additive_expression{
+		$$ = counter_global ++;
+		myfile << "relational_expression"<<$$<<"->{relational_expression"<<$1<<";\"<"<<$$<<"\";additive_expression"<<$3<<"};\n";
+		myfile << "relational_expression"<<$$<<"[label = relational_expression];\n";	
+		myfile << "\"<"<<$$<<"\"[label = \"<\"];\n";										
+	}
+	| relational_expression '>' additive_expression{
+		$$ = counter_global ++;
+		myfile << "relational_expression"<<$$<<" -> {relational_expression"<<$1<<";\">"<<$$<<"\";additive_expression"<<$3<<"};\n";
+		myfile << "relational_expression"<<$$<<"[label = relational_expression];\n";	
+		myfile << "\">"<<$$<<"\"[label = \">\"];\n";		
+	}
+	| relational_expression LE_OP additive_expression{
+		$$ = counter_global ++;
+		myfile << "relational_expression"<<$$<<" -> {relational_expression"<<$1<<";LE_OP"<<$$<<";additive_expression"<<$3<<"};\n";
+		myfile << "relational_expression"<<$$<<"[label = relational_expression];\n";	
+		myfile << "LE_OP"<<$$<<"[label = LE_OP];\n";		
+	}
+	| relational_expression GE_OP additive_expression{
+		$$ = counter_global ++;
+		myfile << "relational_expression"<<$$<<" -> {relational_expression"<<$1<<";GE_OP"<<$$<<";additive_expression"<<$3<<"};\n";
+		myfile << "relational_expression"<<$$<<"[label = relational_expression];\n";	
+		myfile << "GE_OP"<<$$<<"[label = <];\n";		
+	}
 	;
 
 additive_expression
@@ -122,14 +300,14 @@ additive_expression
 		$$ = counter_global++;
 		myfile << "additive_expression" << $$ << " [label=additive_expression];" << std::endl;
 		myfile << "\"+" << $$ << "\" [label=\"+\"];" << std::endl;
-		myfile << "additive_expression" << $$ << " -> {additive_expression" << $$ << " ; \"+" << $$ << "\" ; multiplicative_expression" << $3 << "};" << std::endl;
+		myfile << "additive_expression" << $$ << " -> {additive_expression" << $1 << " ; \"+" << $$ << "\" ; multiplicative_expression" << $3 << "};" << std::endl;
 	}
 	| additive_expression '-' multiplicative_expression
 	{
 		$$ = counter_global++;
 		myfile << "additive_expression" << $$ << " [label=additive_expression];" << std::endl;
 		myfile << "\"-" << $$ << "\" [label=\"-\"];" << std::endl;
-		myfile << "additive_expression" << $$ << " -> {additive_expression" << $$ << " ; \"-" << $$ << "\" ; multiplicative_expression" << $3 << "};" << std::endl;
+		myfile << "additive_expression" << $$ << " -> {additive_expression" << $1 << " ; \"-" << $$ << "\" ; multiplicative_expression" << $3 << "};" << std::endl;
 	}
 	;
 
@@ -210,6 +388,12 @@ primary_expression
 		$$ = counter_global++;
 		myfile << "primary_expression" << $$ << " [label=primary_expression];" << std::endl;
 		myfile << "primary_expression" << $$ << " -> {l_expression" << $1 << "};" << std::endl;
+	}
+	| l_expression '=' expression{
+		$$ = counter_global++;
+		myfile << "primary_expression" << $$ << " [label=primary_expression];" << std::endl;
+		myfile << "\"=" << $$ << "\"[label=\"=\"];" << std::endl;		
+		myfile << "primary_expression" << $$ << " -> {l_expression" << $1 << "; \"="<<$$<<"\"; expression"<<$3<<"};" << std::endl;	
 	}
 	| INT_CONSTANT
 	{
@@ -304,7 +488,7 @@ selection_statement
 		myfile << "ELSE" << $$ << " [label=ELSE];" << std::endl;
 		myfile << "\"(" << $$ << "\" [label=\"(\"];" << std::endl;
 		myfile << "\")" << $$ << "\" [label=\")\"];" << std::endl;
-		myfile << "selection_statement" << $$ << " -> {IF"<< $$ << " ; \"(" << $$ << "\" ; expression" << $3 <<" ; \")" << $$ << " ; statement" << $5 << " ; ELSE" << $$ << " ; statement};" << std::endl;
+		myfile << "selection_statement" << $$ << " -> {IF"<< $$ << " ; \"(" << $$ << "\" ; expression" << $3 <<" ; \")" << $$ << "\"; statement" << $5 << " ; ELSE" << $$ << " ; statement"<<$7<<"};" << std::endl;
 	}
 	;
 
@@ -318,24 +502,27 @@ iteration_statement
 		myfile << "iteration_statement" << $$ << " [label=\"iteration_statement\"];" << std::endl;
 		myfile << "iteration_statement" << $$ << " -> {WHILE" << $$ << " ; \"(" << $$ << "\" ; expression" << $3 << " ; \")" << $$ << "\"; statement" << $5 <<"};" << std::endl;
 	}
-	| FOR '(' assignment_statement ';' expression ';' assignment_statement ')' statement
+	| FOR '(' expression ';' expression ';' expression ')' statement
 	{
 		$$ = counter_global++;
 		myfile << "FOR" << $$ << " [label=FOR];" << std::endl;
 		myfile << "\"(" << $$ << "\" [label=\"(\"];" << std::endl;
 		myfile << "\")" << $$ << "\" [label=\")\"];" << std::endl;
-		myfile << "\";" << $$ << "\" [label=\";\"];" << std::endl;
-		myfile << "iteration_statement" << $$ << " [label=\"iteration_statement\"];" << std::endl;
+		myfile << "\";1" << $$ << "\" [label=\";\"];" << std::endl;
+		myfile << "\";2" << $$ << "\" [label=\";\"];" << std::endl;		
+		myfile << "expression" << $3 << " [label=expression];" << std::endl;
+		myfile << "expression" << $5 << " [label=expression];" << std::endl;
+		myfile << "expression" << $7 << " [label=expression];" << std::endl;		
 		myfile <<
 			"iteration_statement" << $$ <<
 			" -> {FOR" << $$ <<
 			" ; \"(" << $$ << "\"" <<
-			" ; assignment_statement" << $3 <<
-			" ; \"(" << $$ << "\"" <<
+			" ; expression" << $3 <<
+			" ; \";1" << $$ << "\"" <<
 			" ; expression" << $5 <<
-			" ; \"(" << $$ << "\"" <<
-			" ; assignment_statement" << $7 <<
-			" ; \"(" << $$ << "\"" <<
+			" ; \";2" << $$ << "\"" <<
+			" ; expression" << $7 <<
+			" ; \")" << $$ << "\"" <<			
 			" ; statement" << $9 <<
 			"};" << std::endl;
 		/* myfile << "iteration_statement" << $$ << " -> {FOR" << $$ << " ; \"(" << $$ << "\" ; assignment_statement" << $3 << " ; \";"<< $$ "\" ; expression" << $5 << " ; \";" << $$ << "\" ; assignment_statement" << $7 << " ; \")" << $$ << "\"; statement" << $9 <<"};" << std::endl; */

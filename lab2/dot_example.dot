@@ -1,5 +1,0 @@
-digraph G{
-	main -> {int ; float};
-	int -> ";12";
-	";12" [label=";"];
-}

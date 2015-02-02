@@ -28,7 +28,7 @@ Scanner.h: lex.l
 Scannerbase.h: lex.l
 
 distClean:
-	rm -f a.out lex.cc junk Parser* Scanner* parse.cc 
+	rm -f a.out lex.cc junk Parser* Scanner* parse.cc graph.ps graph.gv parse.y.output
 
 lex:   lex.cc  main.cc
 		g++   --std=c++0x lex.cc main.cc
@@ -36,8 +36,11 @@ lex:   lex.cc  main.cc
 
 run:
 	rm -f graph.gv graph.ps
-	echo "digraph G { \n ordering = out;\n" >> graph.gv
+	echo "digraph G { " >> graph.gv
 	./a.out < test-assembly
 	echo "}" >> graph.gv
+	dot -Tps graph.gv -o graph.ps
+	gnome-open graph.ps
+plot:
 	dot -Tps graph.gv -o graph.ps
 	gnome-open graph.ps
