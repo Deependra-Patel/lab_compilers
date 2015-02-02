@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdio.h>
 #include "Scanner.h"
 #include "Parser.h"
 using namespace std;

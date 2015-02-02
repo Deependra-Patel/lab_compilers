@@ -12,7 +12,7 @@ lex.cc: lex.l Scanner.ih
 
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
 	bisonc++  parse.y; 
-	sed -i 's/#include <iomanip>/#include <iomanip>\nint counter_global = 0;/g' parse.cc
+	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <fstream>\nint counter_global = 0;\n std::ofstream myfile("graph.gv", std::ofstream::out | std::ofstream::app); \n /g' parse.cc
 
 #	bisonc++   --construction -V parse.y; 
 #	sed -i '/ifndef/a #include "tree_util.hh"' Parserbase.h;
@@ -35,4 +35,9 @@ lex:   lex.cc  main.cc
 		make run
 
 run:
+	rm -f graph.gv graph.ps
+	echo "digraph G { \n ordering = out;\n" >> graph.gv
 	./a.out < test-assembly
+	echo "}" >> graph.gv
+	dot -Tps graph.gv -o graph.ps
+	gnome-open graph.ps

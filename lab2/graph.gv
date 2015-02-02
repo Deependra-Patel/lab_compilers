@@ -1,0 +1,20 @@
+digraph G { 
+ ordering = out;
+
+type_specifier0->INT0;
+fun_declarator1->{IDENTIFIER1"(1"; ")1"};
+"(1"[label="("];
+")1"[label=")"];
+type_specifier2->INT2;
+declarator3->IDENTIFIER3;
+declarator_list4 [label="declarator_list"];
+declarator_list4 -> {declarator3};
+declaration5 [label="declaration"];
+declaration5 -> {type_specifier2 ; declarator_list4};
+declaration_list6 [label="declaration_list"];
+declaration_list6 -> {declaration5};
+type_specifier7->INT7;
+declarator8->IDENTIFIER8;
+declarator_list9 [label="declarator_list"];
+declarator_list9 -> {declarator8};
+}

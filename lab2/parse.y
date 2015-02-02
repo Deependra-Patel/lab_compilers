@@ -8,79 +8,152 @@
 
 %%
 
-
 translation_unit
-	: function_definition
-	| translation_unit function_definition
+	: function_definition {
+		$$ = counter_global++;
+		myfile << "translation_unit"<<$$<<"->"<<"function_definition"<<$1<<";\n";		
+	}
+	| translation_unit function_definition{
+		$$ = counter_global++;
+		myfile << "translation_unit"<<$$<<"->"<<"{translation_unit"<<$1<<"; function_definition"<<$2<<"};\n";				
+	}
 	;
 
 function_definition
-	: type_specifier fun_declarator compound_statement {std::cout<<"dldldl"<<$1<<counter_global;}
+	: type_specifier fun_declarator compound_statement {
+		$$ = counter_global++;
+		myfile << "function_definition"<<$$<<"->"<<"{type_specifier"<<$1<<"; fun_declarator"<<$2<<"; compound_statement"<<$3<<"};\n";	
+	}
 	;
 
 type_specifier
-	: VOID 
-	| INT {$$ = counter_global; counter_global++; }
-	| FLOAT 
+	: VOID {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->VOID"<<$$<<";\n";
+	}
+	| INT {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->INT"<<$$<<";\n";
+	}
+	| FLOAT {$$ = counter_global++;
+		myfile << "type_specifier"<<$$<<"->FLOAT"<<$$<<";\n";
+	}
 	;
 
 fun_declarator
-	: IDENTIFIER '(' parameter_list ')' 
-	| IDENTIFIER '(' ')'
+	: IDENTIFIER '(' parameter_list ')' {
+		$$ = counter_global++;
+		myfile << "fun_declarator"<<$$<<"->{IDENTIFIER"<<$$<<"\"("<<$$<<"\"; parameter_list"<<$3<<"; \")"<<$$<<"\"};\n";
+		myfile << "\"("<<$$<<"\"[label=\"(\"];\n";
+		myfile << "\")"<<$$<<"\"[label=\")\"];\n";		
+	}
+	| IDENTIFIER '(' ')'{
+		$$ = counter_global++;
+		myfile << "fun_declarator"<<$$<<"->{IDENTIFIER"<<$$<<"\"("<<$$<<"\"; \")"<<$$<<"\"};\n";
+		myfile << "\"("<<$$<<"\"[label=\"(\"];\n";
+		myfile << "\")"<<$$<<"\"[label=\")\"];\n";		
+	}
 	;
 
 parameter_list
-	: parameter_declaration
-	| parameter_list ',' parameter_declaration
+	: parameter_declaration{
+		$$ = counter_global++;
+		myfile << "parameter_list"<<$$<<"->parameter_declaration"<<$1<<";\n";		
+	}
+	| parameter_list ',' parameter_declaration{
+		$$ = counter_global++;
+		myfile << "parameter_list"<<$$<<"->{parameter_list"<<$1<<"; ,"<<$$<<";parameter_declaration"<<$1<<"};\n";			
+	}
 	;
-
 parameter_declaration
-	: type_specifier declarator
+	: type_specifier declarator{
+		$$ = counter_global++;
+		myfile << "parameter_declaration"<<$$<<"->"<<"{type_specifier"<<$1<<"; declarator"<<$2<<"};\n";		
+	}
 	;
 
 declarator
-	: IDENTIFIER
-	| declarator '[' constant_expression ']'
+	: IDENTIFIER{
+		$$ = counter_global++;
+		myfile << "declarator"<<$$<<"->"<<"IDENTIFIER"<<$$<<";\n";
+	}
+	| declarator '[' constant_expression ']'{
+		$$ = counter_global++;
+		myfile << "declarator"<<$$<<"->"<<"{declarator"<<$1<<"; \"["<<$$<<"\"; constant_expression"<<$3<<";  \"]"<<$$<<"};\n";
+	}
 	;
 
 constant_expression
-	: INT_CONSTANT
-	| FLOAT_CONSTANT
+	: INT_CONSTANT{
+		$$ = counter_global++;
+		myfile << "constant_expression"<<$$<<"->"<<"INT_CONSTANT"<<$$<<";\n";
+	}
+	| FLOAT_CONSTANT{
+		$$ = counter_global++;
+		myfile << "constant_expression"<<$$<<"->"<<"FLOAT_CONSTANT"<<$$<<";\n";	
+	}
 	;
 
 compound_statement
-	: '{' '}'
+	: '{' '}' {
+		$$ = counter_global++;
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"}\"];\n";
+	}
 	| '{' statement_list '}' {
 		$$ = counter_global++;
-	 	std::cout<<"compound_statement"<<$$<<"->{{;statement_list"<<$2<<";}}\n";
-	 	
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; statement_list"<<$2<<"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"{\"];\n";
 	 }
-    | '{' declaration_list statement_list '}'
+    | '{' declaration_list statement_list '}'{
+    	$$ = counter_global++;
+		myfile << "compound_statement"<<$$<<"->{\"{"<<$$<<"\"; declaration_list"<<$2<<", statement_list"<<$3<<"; \"}"<<$$<<"\"};\n";
+		myfile << "\"{"<<$$<<"\"[label=\"{\"];\n";
+		myfile << "\"}"<<$$<<"\"[label=\"}\"];\n";
+    }
 	;
 
 statement_list
 	: statement 
 	{
-		$$ = 4;
-		std::cout<<"statement_list->statement\n";
+		$$ = counter_global++;
+		myfile << "statement_list"<<$$<<"->{statement"<<$1<<"}\n";
 	}
 	| statement_list statement
 	{
-		std::cout<<"statement_list->statement_list\n statement_list->statement\n";
+		$$ = counter_global++;
+		myfile << "{statement_list"<<$$<<"->statement_list"<<$1<<"; "<<"statement"<<$2<<"};\n";
 	}	
 	;
 
 statement
    : compound_statement
-   {
-		std::cout<<"statement_list->statement_list\n statement_list->statement\n";   		
-
+	{
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> compound_statement"<<$1<<";\n";   		
    }
    | selection_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> selection_statement"<<$1<<";\n";   		
+   }
    | iteration_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> iteration_statement"<<$1<<";\n";   		   
+   }
    | assignment_statement
+   {
+		$$ = counter_global++;
+		myfile << "statement"<<$$<<" -> assignment_statement"<<$1<<";\n";   		
+	}
    | RETURN expression ';'
+   {
+   		$$ = counter_global++;
+		myfile << "statement"<<$$<<" ->{RETURN"<<$$<<"; expression"<<$2<<"';'"<<$$<<"};\n";   
+   }
    ;
+
 
 assignment_statement
 	: ';'
@@ -135,46 +208,100 @@ postfix_expression
 
 primary_expression
 	: l_expression
+    |  l_expression '=' expression       
 	| INT_CONSTANT
 	| FLOAT_CONSTANT
-        | STRING_LITERAL
+    | STRING_LITERAL
 	| '(' expression ')'
 	;
 
 l_expression
-    : IDENTIFIER
-	| l_expression '[' expression ']' 
+        : IDENTIFIER
+        | l_expression '[' expression ']' 
+        ;
+expression_list
+        : expression
+        | expression_list ',' expression
+        ;
+unary_operator
+    : '-'
+	| '!'
 	;
 
-expression_list
-   : expression
-   | expression_list ',' expression
-   ;
-
-unary_operator
-   : '-'
-   | '!'
-   ;
-
 selection_statement
-    : IF '(' expression ')' statement ELSE statement
+        : IF '(' expression ')' statement ELSE statement
 	;
 
 iteration_statement
 	: WHILE '(' expression ')' statement
-	| FOR '(' assignment_statement expression ';' assignment_statement ')' statement
+	{
+		$$ = counter_global++;
+		myfile << "WHILE" << $$ << " [label=WHILE];" << std::endl;
+		myfile << "\"(" << $$ << "\" [label=\"(\"];" << std::endl;
+		myfile << "\")" << $$ << "\" [label=\")\"];" << std::endl;
+		myfile << "iteration_statement" << $$ << " [label=\"iteration_statement\"];" << std::endl;
+		myfile << "iteration_statement" << $$ << " -> {WHILE" << $$ << " ; \"(" << $$ << "\" ; expression" << $3 << " ; \")" << $$ << "\"; statement" << $5 <<"};" << std::endl;
+	}
+	| FOR '(' assignment_statement ';' expression ';' assignment_statement ')' statement
+	{
+		$$ = counter_global++;
+		myfile << "FOR" << $$ << " [label=FOR];" << std::endl;
+		myfile << "\"(" << $$ << "\" [label=\"(\"];" << std::endl;
+		myfile << "\")" << $$ << "\" [label=\")\"];" << std::endl;
+		myfile << "\";" << $$ << "\" [label=\";\"];" << std::endl;
+		myfile << "iteration_statement" << $$ << " [label=\"iteration_statement\"];" << std::endl;
+		myfile <<
+			"iteration_statement" << $$ <<
+			" -> {FOR" << $$ <<
+			" ; \"(" << $$ << "\"" <<
+			" ; assignment_statement" << $3 <<
+			" ; \"(" << $$ << "\"" <<
+			" ; expression" << $5 <<
+			" ; \"(" << $$ << "\"" <<
+			" ; assignment_statement" << $7 <<
+			" ; \"(" << $$ << "\"" <<
+			" ; statement" << $9 <<
+			"};" << std::endl;
+		/* myfile << "iteration_statement" << $$ << " -> {FOR" << $$ << " ; \"(" << $$ << "\" ; assignment_statement" << $3 << " ; \";"<< $$ "\" ; expression" << $5 << " ; \";" << $$ << "\" ; assignment_statement" << $7 << " ; \")" << $$ << "\"; statement" << $9 <<"};" << std::endl; */
+	}
 	;
 
 declaration_list
 	: declaration
+	{
+		$$ = counter_global++;
+		myfile << "declaration_list" << $$ << " [label=\"declaration_list\"];" << std::endl;
+		myfile << "declaration_list" << $$ << " -> {declaration" << $1 << "};" << std::endl;
+	}
 	| declaration_list declaration
+	{
+		$$ = counter_global++;
+		myfile << "declaration_list" << $$ << " [label=\"declaration_list\"];" << std::endl;
+		myfile << "declaration_list" << $$ << " -> {declaration_list" << $1 << " ; declarator" << $2 << "};" << std::endl;
+	}
 	;
 
 declaration
 	: type_specifier declarator_list';'
+	{
+		$$ = counter_global++;
+		myfile << "declaration" << $$ << " [label=\"declaration\"];" << std::endl;
+		myfile << "declaration" << $$ << " -> {type_specifier" << $1 << " ; declarator_list" << $2 <<"};" << std::endl;
+	}
 	;
 
 declarator_list
 	: declarator
+	{
+		$$ = counter_global++;
+		myfile << "declarator_list" << $$ << " [label=\"declarator_list\"];" << std::endl;
+		myfile << "declarator_list" << $$ << " -> {declarator" << $1 << "};" << std::endl;
+	}
 	| declarator_list ',' declarator
+	{
+		$$ = counter_global++;
+		myfile << "declarator_list" << $$ << " [label=\"declarator_list\"];" << std::endl;
+		myfile << "declarator_list" << $$ << " -> {declarator_list" << $1 << " ; \"," << $2 << "\" ; declarator" << $1 << "};" << std::endl;
+	}
 	;
+

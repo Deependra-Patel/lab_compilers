@@ -1,4 +1,4 @@
-int main(float x){
-
-		return i;
+int main(){
+	int i;
+	int x = 4 + i;
 }
