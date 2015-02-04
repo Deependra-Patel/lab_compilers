@@ -28,7 +28,7 @@ Scanner.h: lex.l
 Scannerbase.h: lex.l
 
 distClean:
-	rm -f a.out lex.cc junk Parser* Scanner* parse.cc graph.ps graph.gv parse.y.output
+	rm -f a.out lex.cc junk Parser* Scanner* parse.cc graph.ps graph.gv parse.y.output *~
 
 lex:   lex.cc  main.cc
 		g++   --std=c++0x lex.cc main.cc
