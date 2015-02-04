@@ -1,0 +1,10 @@
+int main(int a){
+	a = 5;
+	for (z = 54; z<100; z = z + 1){
+		z = z + 10;
+	}
+	if (a == 45){
+		return 56;
+	}
+	else return 10;
+}
