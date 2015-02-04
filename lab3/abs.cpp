@@ -2,6 +2,23 @@
 #include "abs.h"
 using namespace std;
 
-public tranlation_unit::print(){
-  cout<<"hi, tranls unit"<<endl;
+
+Seq::Seq(){}
+Seq::Seq(StmtAst* l, StmtAst* r){
+	left = l;
+	right = r;
+};
+
+
+Ass::Ass(){}
+Ass::Ass(ExpAst* l, ExpAst* r){
+	left = l;
+	right = r;
+};
+
+int main()
+{
+	
+    return 0;
 }
+

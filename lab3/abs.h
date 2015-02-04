@@ -1,4 +1,21 @@
+#include <iostream>
 #include <vector>
+using namespace std;
+
+
+class symbolTable{
+	
+};
+
+class basic_types {
+	
+};
+
+class typeExp {
+	
+};
+
+
 class abstract_astnode
 {
  public:
@@ -12,15 +29,18 @@ class abstract_astnode
   typeExp astnode_type;
 };
 
-class StmtAst:abstract_astnode{
+class StmtAst:public abstract_astnode{
+	
+  void print () = 0;
 };
-class ExpAst:abstract_astnode{
+class ExpAst:public abstract_astnode{
 };
 class ArrayRef:ExpAst{
 };
 
-class Seq:StmtAst{
-  StmtAst* left, right;
+class Seq:public StmtAst{
+ protected:
+  StmtAst *left, *right;
  public:
   void print();
   Seq();
@@ -28,7 +48,7 @@ class Seq:StmtAst{
 };
 
 class Ass:StmtAst{
-  ExpAst* left, right;
+  ExpAst* left, *right;
  public:
   void print();
   Ass();
@@ -45,7 +65,7 @@ class Return:StmtAst{
 
 class If:StmtAst{
   ExpAst * first;
-  StmtAst * second, third;
+  StmtAst * second, *third;
  public:
   void print();
   If();
@@ -64,7 +84,7 @@ class While:StmtAst{
 
 
 class For:StmtAst{
-  ExpAst * first, second, third;
+  ExpAst * first, *second, *third;
   StmtAst * child;
  public:
   void print();
@@ -73,21 +93,21 @@ class For:StmtAst{
 };
 
 ///////////////////////////////////////////////
-class Op:ExpAst{
-  ExpAst * left, right;
-  enum opName;
+class OpBinary:ExpAst{
+  ExpAst * left, *right;
+  enum opName{OR, AND, EQ_OP, NE_OP, LT, LE_OP, GE_OP, PLUS, MINUS, MULT, ASSIGN};
  public:
   void print();
-  Op();
-  Op(ExpAst*, ExpAst*, enum);
+  OpBinary();
+  OpBinary(ExpAst*, ExpAst*, opName);
 };
 
-class Op:ExpAst{
+class OpUnary:ExpAst{
   ExpAst * child;
-  enum opName;
+  enum opName{UMINUS, NOT, PP};
  public:
   void print();
-  Op(ExpAst*, enum);
+  OpUnary(ExpAst*, opName);
 };
 
 class Funcall:ExpAst{
@@ -122,15 +142,7 @@ class StringConst:ExpAst{
   StringConst(string x);
 };
 
-class Identifier:ExpAst{
- string  child;
- public:
-  void print();
-  Identifier(){}
-  Identifier(string x);
-};
-
-class Identifier:ArrayRef{
+class Identifier:public ArrayRef{
  string  child;
  public:
   void print();
