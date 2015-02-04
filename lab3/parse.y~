@@ -490,8 +490,7 @@ selection_statement
 		myfile << "\")" << $$ << "\" [label=\")\"];" << std::endl;
 		myfile << "selection_statement" << $$ << " -> {IF"<< $$ << " ; \"(" << $$ << "\" ; expression" << $3 <<" ; \")" << $$ << "\"; statement" << $5 << " ; ELSE" << $$ << " ; statement"<<$7<<"};" << std::endl;
 	}
-	; 
-
+	;
 
 iteration_statement
 	: WHILE '(' expression ')' statement
