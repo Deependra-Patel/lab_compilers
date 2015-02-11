@@ -35,7 +35,7 @@ lex:   lex.cc  main.cc
 		make run
 
 run:
-	rm -f graph.gv graph.ps
+	rm -f graph.gv graph.ps 
 	echo "digraph G { " >> graph.gv
 	./a.out < test-assembly
 	echo "}" >> graph.gv
