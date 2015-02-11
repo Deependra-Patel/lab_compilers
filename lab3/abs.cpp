@@ -8,19 +8,103 @@ Seq::Seq(StmtAst* l, StmtAst* r){
 	left = l;
 	right = r;
 };
+
 void Seq::print(){
-  cout<<"dfd"<<endl;
+	cout << "(Seq ";
+	left->print();
+	cout << " ";
+	right->print();
+	cout <<")";
 }
 
+// for Ass
 Ass::Ass(){}
 Ass::Ass(ExpAst* l, ExpAst* r){
 	left = l;
 	right = r;
 };
-void Ass::print(){
 
+void Ass::print(){
+	cout << "(Ass ";
+	left->print();
+	cout << " ";
+	right->print();
+	cout << ")";
 }
 
+// for Return
+Return::Return() {
+	
+}
+Return::Return(ExpAst* c) {
+	child = c;
+}
+
+void Return::print() {
+	cout << "(Return ";
+	child->print();
+	cout << ")";
+}
+
+// for If
+
+If::If() {
+	
+}
+If::If(ExpAst* f, StmtAst* s, StmtAst* t){
+	first = f;
+	second = s;
+	third = t;
+}
+
+void If::print() {
+	cout << "(If ";
+	first->print();
+	cout << " ";
+	second->print();
+	cout << " ";
+	third->print();
+	cout << ")";
+}
+// for While
+
+While::While() {
+	
+}
+While::While(ExpAst* l, StmtAst* r) {
+	left = l;
+	right = r;
+}
+
+void While::print() {
+	cout << "(While ";
+	left->print();
+	cout << " ";
+	right->print();
+	cout << ")";
+}
+
+// for For
+
+For::For() {
+	
+}
+For::For(ExpAst* f, ExpAst* s, ExpAst* t, StmtAst* c){
+	first = f;
+	second = s;
+	third = t;
+	child = c;
+}
+
+void For::print() {
+	cout << "(For ";
+	first->print();
+	cout << " ";
+	second->print();
+	cout << " ";
+	third->print();
+	cout << ")";
+}
 
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(ExpAst* left, ExpAst* right, opNameE e){
