@@ -2,6 +2,25 @@
 #include <vector>
 using namespace std;
 
+enum opNameB{OR=1,
+			 AND=2,
+			 EQ_OP=3,
+			 NE_OP=4,
+			 LT=5,
+			 LE_OP=6,
+			 GT=7,
+			 GE_OP=8,
+			 PLUS=9,
+			 MINUS=10,
+			 MULT=11,
+			 ASSIGN=12
+};
+
+
+enum opNameU{UMINUS=13,
+			 NOT=14,
+			 PP=15
+};
 
 class symbolTable{
 	
@@ -97,35 +116,38 @@ class For:public StmtAst{
 };
 
 ///////////////////////////////////////////////
-class OpBinary:ExpAst{
+class OpBinary:public ExpAst{
   ExpAst * left, *right;
-  enum opNameE{OR, AND, EQ_OP, NE_OP, LT, LE_OP, GE_OP, PLUS, MINUS, MULT, ASSIGN};
-  opNameE opName;
+  opNameB opName;
  public:
   void print();
   OpBinary();
-  OpBinary(ExpAst*, ExpAst*, opNameE);
+  void setArguments(ExpAst*, ExpAst*);
+  OpBinary(ExpAst*, ExpAst*, opNameB);
+  OpBinary(opNameB);
 };
 
 class OpUnary:public ExpAst{
-  enum opNameE{UMINUS, NOT, PP};
   ExpAst * child;
-  opNameE opName;
+  opNameU opName;
  public:
   void print();
   OpUnary();
-  OpUnary(ExpAst*, opNameE);
+  OpUnary(ExpAst*, OpUnary*);
+  OpUnary(ExpAst*, opNameU);
+  OpUnary(opNameU);
 };
 
-class Funcall:ExpAst{
-  vector<ExpAst*> children;
+class Funcall:public ExpAst{
  public:
+  vector<ExpAst*> children;
   void print();
   Funcall();
   Funcall(vector<ExpAst*>);
+  Funcall(ExpAst*);
 };
 
-class FloatConst:ExpAst{
+class FloatConst:public ExpAst{
  float  child;
  public:
   void print();
@@ -133,7 +155,7 @@ class FloatConst:ExpAst{
   FloatConst(float x);
 };
 
-class IntConst:ExpAst{
+class IntConst:public ExpAst{
  int  child;
  public:
   void print();
@@ -141,7 +163,7 @@ class IntConst:ExpAst{
   IntConst(int x);
 };
 
-class StringConst:ExpAst{
+class StringConst:public ExpAst{
  string  child;
  public:
   void print();
@@ -157,7 +179,7 @@ class Identifier:public ArrayRef{
   Identifier(string x);
 };
 
-class Index:ExpAst{
+class Index:public ArrayRef{
   ArrayRef* left;
   ExpAst* right;
  public:

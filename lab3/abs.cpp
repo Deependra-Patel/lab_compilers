@@ -107,9 +107,20 @@ void For::print() {
 }
 
 OpBinary::OpBinary(){};
-OpBinary::OpBinary(ExpAst* left, ExpAst* right, opNameE e){
+OpBinary::OpBinary(opNameB e){
   opName = e;
 }
+
+void OpBinary::setArguments(ExpAst* x, ExpAst *y) {
+	left = x;
+	right = y;
+}
+OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
+	left = x;
+	right = y;
+	opName = o;
+}
+
 void OpBinary::print(){
   cout<<"( "<<opName;
   left->print();
@@ -119,9 +130,16 @@ void OpBinary::print(){
 }
 
 OpUnary::OpUnary(){}
-OpUnary::OpUnary(ExpAst* x, opNameE e){
-  child = x;
+OpUnary::OpUnary(opNameU e){
   opName = e;
+}
+OpUnary::OpUnary(ExpAst*x, opNameU e) {
+	child = x;
+	opName = e;
+}
+OpUnary::OpUnary(ExpAst * x, OpUnary* y) {
+	opName = y->opName;
+	child = x;
 }
 void OpUnary::print(){
   cout<<"( "<<opName;
@@ -132,6 +150,9 @@ void OpUnary::print(){
 Funcall::Funcall(){}
 Funcall::Funcall(vector<ExpAst*> exps){
   children = exps;
+}
+Funcall::Funcall(ExpAst* x) {
+	children.push_back(x);
 }
 void Funcall::print(){
   cout<<"(Funcall ";
