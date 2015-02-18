@@ -20,7 +20,7 @@
 translation_unit
 	: function_definition 
 	| translation_unit function_definition 
-        ;
+	;
 
 function_definition
 	: type_specifier fun_declarator compound_statement 
@@ -92,15 +92,15 @@ logical_and_expression
 
 equality_expression
 	: relational_expression 
-        | equality_expression EQ_OP relational_expression 	
+	| equality_expression EQ_OP relational_expression 	
 	| equality_expression NE_OP relational_expression
 	;
 relational_expression
 	: additive_expression
-        | relational_expression '<' additive_expression 
+	| relational_expression '<' additive_expression 
 	| relational_expression '>' additive_expression 
 	| relational_expression LE_OP additive_expression 
-        | relational_expression GE_OP additive_expression 
+	| relational_expression GE_OP additive_expression 
 	;
 
 additive_expression 
@@ -116,11 +116,11 @@ multiplicative_expression
 	;
 unary_expression
 	: postfix_expression  				
-	| unary_operator postfix_expression{
+	| unary_operator postfix_expression
+	{
 	  std::cout<<"unary";	  
 	  std::cout<<$1;
-
- } 
+	} 
 	;
 
 postfix_expression
@@ -132,10 +132,10 @@ postfix_expression
 
 primary_expression
 	: l_expression
-        | l_expression '=' expression // added this production
+    | l_expression '=' expression // added this production
 	| INT_CONSTANT
 	| FLOAT_CONSTANT
-        | STRING_LITERAL
+    | STRING_LITERAL
 	| '(' expression ')' 	
 	;
 
@@ -148,28 +148,30 @@ expression_list
 	| expression_list ',' expression
 	;
 unary_operator
-: '-'{
- }
-| '!' {
-  /* $$ = "!"; */
-  } 	
+	: '-'{
+ 	}
+	| '!' {
+		/* $$ = "!"; */
+	  } 	
 	;
 
 selection_statement
-: IF '(' expression ')' statement ELSE statement{
-  $<stmtAst>$ = new If();
- } 
+	: IF '(' expression ')' statement ELSE statement
+	{
+		$<stmtAst>$ = new If();
+ 	} 
 	;
 
 iteration_statement
-: WHILE '(' expression ')' statement {
-  // $$ = new While($3, $5);
- }	
+	: WHILE '(' expression ')' statement
+	{
+		// $$ = new While($3, $5);
+	}	
     | FOR '(' expression ';' expression ';' expression ')' statement  //modified this production
-{
-	  //	$$ = new For($3, $5, $7, $9);
+	{
+		//	$$ = new For($3, $5, $7, $9);
 	}
-        ;
+	;
 
 declaration_list
     : declaration					
@@ -177,7 +179,7 @@ declaration_list
 	;
 
 declaration
-: type_specifier declarator_list';'
+	: type_specifier declarator_list';'
 	;
 
 declarator_list
