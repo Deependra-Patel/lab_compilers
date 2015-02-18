@@ -1,3 +1,4 @@
 int main(){
-	y = a;
+	a = b;
+	b = c;
 }

@@ -1,3 +1,9 @@
-make: Warning: File `Scanner.h' has modification time 43 s in the future
-Segmentation fault
-make: *** [all] Error 139
+make: Warning: File `parse.y' has modification time 40 s in the future
+parse.y: In member function ‘void Parser::executeAction(int)’:
+parse.y:24:10: error: ‘$’ was not declared in this scope
+   $<stmtAst$->print();
+          ^
+parse.y:24:12: error: ‘stmtAst$’ was not declared in this scope
+   $<stmtAst$->print();
+            ^
+make: *** [all] Error 1

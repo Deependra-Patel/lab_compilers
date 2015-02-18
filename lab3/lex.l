@@ -49,7 +49,7 @@ void										return Parser::VOID;
 {INT_CONSTANT}                             	return Parser::INT_CONSTANT;
 {FLOAT_CONSTANT}                           	return Parser::FLOAT_CONSTANT;
 {symbols}									return Scanner::matched()[0];
-{IDENTIFIER}                            	return Parser::IDENTIFIER;
+{IDENTIFIER}                            	{Parser::d_val__ = std::string(matched());return Parser::IDENTIFIER;}
 .                                           return Parser::OTHER;
 
 

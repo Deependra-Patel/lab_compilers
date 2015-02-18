@@ -21,6 +21,9 @@ translation_unit
 	: function_definition
 	{
 		$<stmtAst>$ = $<stmtAst>1;
+		cout << "printing : ";
+		$<stmtAst>$->print();
+		cout << endl;
 	}
 	| translation_unit function_definition
 	{
@@ -38,16 +41,23 @@ function_definition
 type_specifier
 	: VOID
 	{
+		$<Int>$ = 3;
 	}
     | INT
 	{
+		$<Int>$ = 3;
 	} 
-	| FLOAT 
+	| FLOAT
+	{
+		$<Int>$ = 3;
+	}
     ;
 
 fun_declarator
 	: IDENTIFIER '(' parameter_list ')' 
-    | IDENTIFIER '(' ')' 
+    | IDENTIFIER '(' ')'
+	{
+	}
 	;
 
 parameter_list
@@ -76,7 +86,10 @@ constant_expression
 	;
 
 compound_statement
-	: '{' '}' 
+	: '{' '}'
+	{
+		$<stmtAst>$ = new Seq();
+	}
 	| '{' statement_list '}'
 	{
 		$<stmtAst>$ = $<stmtAst>2;
@@ -271,7 +284,7 @@ primary_expression
 l_expression
     : IDENTIFIER
 	{
-	  $<expAst>$ = new StringConst($1); 	  
+		$<expAst>$ = new Identifier($1); 	  
 	}
 	| l_expression '[' expression ']'
 	{
