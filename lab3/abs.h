@@ -77,7 +77,7 @@ class If:StmtAst{
 };
 
 
-class While:StmtAst{
+class While:public StmtAst{
   ExpAst * left;
   StmtAst * right;
  public:
@@ -87,7 +87,7 @@ class While:StmtAst{
 };
 
 
-class For:StmtAst{
+class For:public StmtAst{
   ExpAst * first, *second, *third;
   StmtAst * child;
  public:

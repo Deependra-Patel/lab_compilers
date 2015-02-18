@@ -4,8 +4,9 @@
 
 %token VOID INT FLOAT IDENTIFIER INT_CONSTANT FLOAT_CONSTANT RETURN OR_OP AND_OP EQ_OP NE_OP LE_OP GE_OP INC_OP STRING_LITERAL IF ELSE WHILE FOR OTHER SYMBOL
 
-%polymorphic INT: int; TEXT: std::string
+%polymorphic INT: int; TEXT: std::string; IF: If*;
 %type <TEXT> unary_operator
+%type <IF> selection_statement
 %%
 
 
@@ -149,12 +150,19 @@ unary_operator
 	;
 
 selection_statement
-        : IF '(' expression ')' statement ELSE statement 
+: IF '(' expression ')' statement ELSE statement{
+  $$ = new If(new OpUnary(), new For(), new For()); 
+ } 
 	;
 
 iteration_statement
-	: WHILE '(' expression ')' statement 	
+: WHILE '(' expression ')' statement {
+  // $$ = new While($3, $5);
+ }	
         | FOR '(' expression ';' expression ';' expression ')' statement  //modified this production
+{
+	  //	$$ = new For($3, $5, $7, $9);
+	}
         ;
 
 declaration_list
@@ -163,7 +171,7 @@ declaration_list
 	;
 
 declaration
-	: type_specifier declarator_list';'
+: type_specifier declarator_list';'
 	;
 
 declarator_list

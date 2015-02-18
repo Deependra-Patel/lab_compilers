@@ -186,10 +186,3 @@ void Index::print(){
   right->print();
   cout<<")"<<endl;
 }
-
-int main()
-{
-	
-    return 0;
-}
-

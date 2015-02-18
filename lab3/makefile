@@ -11,14 +11,18 @@ lex.cc: lex.l Scanner.ih
 	sed -i '/include/a #include "Parserbase.h"' Scanner.ih; 
 
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
-	bisonc++  parse.y; 
-	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <fstream>\nint counter_global = 0;\n std::ofstream myfile("graph.gv", std::ofstream::out | std::ofstream::app); \n /g' parse.cc
+	bisonc++  parse.y;
+	sed -i 's/#include <iomanip>/#include <iomanip> \n #include "abs.h" \n/g' Parserbase.h 
+	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <fstream> \n int counter_global = 0;\n std::ofstream myfile("graph.gv", std::ofstream::out | std::ofstream::app); \n /g' parse.cc
 
 #	bisonc++   --construction -V parse.y; 
 #	sed -i '/ifndef/a #include "tree_util.hh"' Parserbase.h;
 #	sed -i '/ifndef/a #include "tree.hh"' Parserbase.h;
 #	./sedscript
      
+
+compile:  lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
+	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp;
 
 Parser.ih: parse.y
 Parser.h:  parse.y
