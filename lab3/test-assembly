@@ -1,4 +1,4 @@
 int main(int a){
 	int y;
-	y = !a;
+	y = a;
 }

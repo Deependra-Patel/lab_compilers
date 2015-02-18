@@ -37,7 +37,7 @@ class ExpAst:public abstract_astnode{
  public:	
   void print () = 0;
 };
-class ArrayRef:ExpAst{
+class ArrayRef: public ExpAst{
  public:	
   void print () = 0;
 };
@@ -51,7 +51,7 @@ class Seq:public StmtAst{
   Seq(StmtAst* left, StmtAst* right);
 };
 
-class Ass:StmtAst{
+class Ass: public StmtAst{
   ExpAst* left, *right;
  public:
   void print();
@@ -59,7 +59,7 @@ class Ass:StmtAst{
   Ass(ExpAst* left, ExpAst* right);
 };
 
-class Return:StmtAst{
+class Return: public StmtAst{
   ExpAst * child;
  public:
   void print();
@@ -67,7 +67,7 @@ class Return:StmtAst{
   Return(ExpAst*);
 };
 
-class If:StmtAst{
+class If: public StmtAst{
   ExpAst * first;
   StmtAst * second, *third;
  public:
