@@ -1,4 +1,4 @@
-int main(){
-	a = b;
-	b = c;
+int main()
+{
+a=function();
 }

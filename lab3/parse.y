@@ -21,7 +21,7 @@ translation_unit
 	: function_definition
 	{
 		$<stmtAst>$ = $<stmtAst>1;
-		cout << "printing : ";
+		cout << "printing: ";
 		$<stmtAst>$->print();
 		cout << endl;
 	}
@@ -41,15 +41,15 @@ function_definition
 type_specifier
 	: VOID
 	{
-		$<Int>$ = 3;
+		$<Int>$ = 0;
 	}
     | INT
 	{
-		$<Int>$ = 3;
+		$<Int>$ = 1;
 	} 
 	| FLOAT
 	{
-		$<Int>$ = 3;
+		$<Int>$ = 2;
 	}
     ;
 
@@ -71,7 +71,7 @@ parameter_declaration
 
 declarator
 	: IDENTIFIER 
-	| declarator '[' constant_expression ']' 
+	| declarator '[' constant_expression ']'
 	;
 
 constant_expression 
@@ -88,7 +88,7 @@ constant_expression
 compound_statement
 	: '{' '}'
 	{
-		$<stmtAst>$ = new Seq();
+		$<stmtAst>$ = new BlockStatement();
 	}
 	| '{' statement_list '}'
 	{
@@ -96,18 +96,19 @@ compound_statement
 	}
     | '{' declaration_list statement_list '}'
 	{
-		$<stmtAst>$ = new Seq($<stmtAst>2, $<stmtAst>3);
+		$<stmtAst>$ = $<stmtAst>3;
  	}
 	;
 
 statement_list
 	: statement
 	{
-		$<stmtAst>$ = $<stmtAst>1;
+		$<stmtAst>$ = new BlockStatement($<stmtAst>1);
 	}
     | statement_list statement
 	{
-		$<stmtAst>$ = new Seq($<stmtAst>1, $<stmtAst>2);
+		((BlockStatement*)$<stmtAst>1)->children.push_back($<stmtAst>2);
+		$<stmtAst>$ = $<stmtAst>1;
 	}
 	;
 
@@ -135,7 +136,10 @@ statement
 	;
 
 assignment_statement
-	: ';' 								
+	: ';'
+	{
+		$<stmtAst>$ = new Ass();
+	}
 	|  l_expression '=' expression ';'
 	{
 		$<stmtAst>$ = new Ass($<expAst>1, $<expAst>3);
@@ -248,10 +252,18 @@ postfix_expression
 	}
     | IDENTIFIER '(' ')'
 	{
-	  $<expAst>$ = new StringConst($<String>1);
+		
+		$<expAst>$ = new Funcall(new Identifier($<String>1));
 	}
-	| IDENTIFIER '(' expression_list ')' 
+	| IDENTIFIER '(' expression_list ')'
+	{
+		((Funcall*)$<expAst>3)->children.insert(((Funcall*)$<expAst>3)->children.begin(), new Identifier($<String>1));
+		$<expAst>$ = $<expAst>3;
+	}
 	| l_expression INC_OP
+	{
+		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);
+	}
 	;
 
 primary_expression
@@ -284,7 +296,7 @@ primary_expression
 l_expression
     : IDENTIFIER
 	{
-		$<expAst>$ = new Identifier($1); 	  
+		$<expAst>$ = new Identifier($1);
 	}
 	| l_expression '[' expression ']'
 	{
@@ -334,12 +346,12 @@ iteration_statement
 declaration_list
     : declaration
 	{
-		$<expAst>$ = new Funcall($<expAst>1);
+		//$<expAst>$ = new Funcall($<expAst>1);
 	}
 	| declaration_list declaration
 	{
-		((Funcall*)$<expAst>1)->children.push_back($<expAst>2);
-		$<expAst>$ = $<expAst>1;
+		//((Funcall*)$<expAst>1)->children.push_back($<expAst>2);
+		//$<expAst>$ = $<expAst>1;
 	}
 	;
 
@@ -349,5 +361,8 @@ declaration
 
 declarator_list
 	: declarator
+	{
+		
+	}
 	| declarator_list ',' declarator 
 	;

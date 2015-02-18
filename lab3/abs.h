@@ -2,6 +2,7 @@
 #include <vector>
 using namespace std;
 
+
 enum opNameB{OR=1,
 			 AND=2,
 			 EQ_OP=3,
@@ -70,9 +71,22 @@ class Seq:public StmtAst{
   Seq(StmtAst* left, StmtAst* right);
 };
 
+
+class BlockStatement:public StmtAst{
+ public:
+	vector<StmtAst*> children;
+ public:
+  void print();
+  BlockStatement();
+  BlockStatement(StmtAst*);
+};
+
+
+
 class Ass: public StmtAst{
   ExpAst* left, *right;
  public:
+  bool empty;
   void print();
   Ass();
   Ass(ExpAst* left, ExpAst* right);

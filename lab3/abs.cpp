@@ -1,6 +1,27 @@
 #include <iostream>
 #include "abs.h"
+#include <string>
 using namespace std;
+
+
+string inverse_enum[] = {
+	"",
+	"OR",
+	"AND",
+	"EQ_OP",
+	"NE_OP",
+	"LT",
+	"LE_OP",
+	"GT",
+	"GE_OP",
+	"PLUS",
+	"MINUS",
+	"MULT",
+	"ASSIGN",
+	"UMINUS",
+	"NOT",
+	"PP"
+};
 
 
 Seq::Seq(){}
@@ -17,14 +38,39 @@ void Seq::print(){
 	cout <<")";
 }
 
+
+BlockStatement::BlockStatement(){}
+BlockStatement::BlockStatement(StmtAst* c){
+	children.push_back(c);
+};
+
+void BlockStatement::print(){
+	if (children.empty()) cout << "(Empty)";
+	cout << "(Block [";
+	for (int i = 0; i < children.size(); i++) {
+		children.at(i)->print();
+		if (i < children.size() - 1) cout << " ";
+	}
+	cout << "])";
+}
+
+
+
 // for Ass
-Ass::Ass(){}
+Ass::Ass(){
+	empty = true;
+}
 Ass::Ass(ExpAst* l, ExpAst* r){
 	left = l;
 	right = r;
+	empty = false;
 };
 
 void Ass::print(){
+	if (empty) {
+		cout << "(Empty)";
+		return ;
+	}
 	cout << "(Ass ";
 	left->print();
 	cout << " ";
@@ -103,6 +149,8 @@ void For::print() {
 	second->print();
 	cout << " ";
 	third->print();
+	cout << " ";
+	child->print();
 	cout << ")";
 }
 
@@ -122,11 +170,11 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 }
 
 void OpBinary::print(){
-  cout<<"( "<<opName;
+	cout<<"("<<inverse_enum[opName] << " ";
   left->print();
   cout<<" ";
   right->print();
-  cout<<")"<<endl;
+  cout<<")";
 }
 
 OpUnary::OpUnary(){}
@@ -142,9 +190,9 @@ OpUnary::OpUnary(ExpAst * x, OpUnary* y) {
 	child = x;
 }
 void OpUnary::print(){
-  cout<<"( "<<opName;
+	cout<<"("<<inverse_enum[opName] << " ";
   child->print();
-  cout<<")"<<endl;
+  cout<<")";
 }
 
 Funcall::Funcall(){}
@@ -159,16 +207,16 @@ void Funcall::print(){
   int l = children.size();
   for(int i = 0; i<l; i++){
     children[i]->print();
-    cout<<" ";
+    if (i < l-1) cout<<" ";
   }
-  cout<<")"<<endl;
+  cout<<")";
 }
 
 FloatConst::FloatConst(float x){
   child = x;
 }
 void FloatConst::print(){
-  cout<<"FloatConst "<<child<<")";
+  cout<<"(FloatConst "<<child<<")";
 }
 
 IntConst::IntConst(){}
@@ -176,7 +224,7 @@ IntConst::IntConst(int x){
   child = x;
 }
 void IntConst::print(){
-  cout<<"IntConst "<<child<<")";
+  cout<<"(IntConst "<<child<<")";
 }
 
 StringConst::StringConst(string x){
@@ -201,9 +249,9 @@ Index::Index(ArrayRef* left, ExpAst* right){
   this->right = right;
 }
 void Index::print(){
-  cout<<"(INDEX";
+  cout<<"(Index ";
   left->print();
   cout<<" ";
   right->print();
-  cout<<")"<<endl;
+  cout<<")";
 }

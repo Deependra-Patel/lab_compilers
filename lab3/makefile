@@ -2,7 +2,9 @@ all: distClean   lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Pars
 	./sedscript
 	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp;
 	./a.out < test-assembly > junk;
-	egrep 'nextToken|reduce' junk
+	@echo "\nOutput:"
+	@grep printing junk | sed 's/^..........//' > output.scm
+	@cat output.scm
         
 
 lex.cc: lex.l Scanner.ih 
@@ -33,7 +35,7 @@ Scanner.h: lex.l
 Scannerbase.h: lex.l
 
 distClean:
-	rm -f a.out lex.cc junk Parser* Scanner* parse.cc graph.ps graph.gv parse.y.output *~
+	rm -f a.out lex.cc junk Parser* Scanner* parse.cc graph.ps graph.gv parse.y.output *~ output.scm
 
 lex:   lex.cc  main.cc
 		g++   --std=c++0x lex.cc main.cc
