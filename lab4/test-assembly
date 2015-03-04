@@ -1,0 +1,8 @@
+int main()
+{
+a=callme();
+		{
+			b = callanotherme();
+		}
+		return 0;
+}
