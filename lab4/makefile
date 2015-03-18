@@ -1,6 +1,6 @@
 all: distClean   lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
 	./sedscript
-	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp;
+	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp SymbolTable.cpp;
 	./a.out < test-assembly > junk;
 	@echo "\nOutput:"
 	@grep printing junk | sed 's/^..........//' > output.scm
@@ -15,8 +15,8 @@ lex.cc: lex.l Scanner.ih
 
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
 	bisonc++  parse.y;
-	sed -i 's/#include <iomanip>/#include <iomanip> \n #include "abs.h" \n/g' Parserbase.h 
-	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <fstream> \n int counter_global = 0;\n std::ofstream myfile("graph.gv", std::ofstream::out | std::ofstream::app); \n /g' parse.cc
+	sed -i 's/#include <iomanip>/#include <iomanip> \n #include "abs.h" \n #include "SymbolTable.h" \n/g' Parserbase.h 
+	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <map>\n#include <fstream> \n SymbolTableEntry* ste; SymbolTable* st; map<string, SymbolTableEntry*> paramMap; Type* retType;\n int counter_global = 0;\n std::ofstream myfile("graph.gv", std::ofstream::out | std::ofstream::app); \n /g' parse.cc
 
 #	bisonc++   --construction -V parse.y; 
 #	sed -i '/ifndef/a #include "tree_util.hh"' Parserbase.h;
@@ -25,7 +25,7 @@ parse.cc: parse.y Parser.ih Parser.h Parserbase.h
      
 
 compile:  lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
-	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp;
+	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp SymbolTable.cpp;
 
 Parser.ih: parse.y
 Parser.h:  parse.y

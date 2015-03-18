@@ -7,13 +7,14 @@
 /* %polymorphic INT: int; TEXT: std::string; IF: If*; */
 /* %type <TEXT> unary_operator */
 /* %type <IF> selection_statement */
-%polymorphic expAst : ExpAst* ; stmtAst : StmtAst*; Int : int; Float : float; String : string;
+%polymorphic type : Type*; expAst : ExpAst* ; stmtAst : StmtAst*; Int : int; Float : float; String : string;
 
 %type <expAst> expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression l_expression constant_expression expression_list
 %type <stmtAst> selection_statement iteration_statement assignment_statement translation_unit function_definition compound_statement statement statement_list
 %type <Int> INT_CONSTANT unary_operator
 %type <Float> FLOAT_CONSTANT
-%type <String> STRING_LITERAL IDENTIFIER
+%type <String> STRING_LITERAL IDENTIFIER fun_declarator
+%type <type> type_specifier
 %%
 
 
@@ -32,32 +33,36 @@ translation_unit
 	;
 
 function_definition
-	: type_specifier fun_declarator compound_statement
+    : type_specifier {st = new SymbolTable(); st->retType = $<type>1; } fun_declarator {st->funcName = $<String>3;st->parameters = paramMap; paramMap.clear();} compound_statement
 	{
-		$<stmtAst>$ = $<stmtAst>3;
+		st->localVariables = paramMap;
+		$<stmtAst>$ = $<stmtAst>5;
+		st->Print();
+		// st = new SymbolTableEntry();
 	}
 	;
 
 type_specifier
 	: VOID
 	{
-		$<Int>$ = 0;
+		$<type>$ = new Type(Kind::Base, Basetype::Void);
+		//$<Int>$ = 0;
 	}
     | INT
 	{
-		$<Int>$ = 1;
+		$<type>$ = new Type(Kind::Base, Basetype::Int);		
+		//$<Int>$ = 1;
 	} 
 	| FLOAT
 	{
-		$<Int>$ = 2;
+		$<type>$ = new Type(Kind::Base, Basetype::Float);		
+		//$<Int>$ = 2;
 	}
     ;
 
 fun_declarator
-	: IDENTIFIER '(' parameter_list ')' 
-    | IDENTIFIER '(' ')'
-	{
-	}
+	: IDENTIFIER '(' parameter_list ')' {$<String>$ = $<String>1;}
+    | IDENTIFIER '(' ')' {$<String>$ = $<String>1;}
 	;
 
 parameter_list
@@ -66,11 +71,14 @@ parameter_list
 	;
 
 parameter_declaration
-	: type_specifier declarator 
+	: 	type_specifier declarator {
+		SymbolTableEntry* ste = new SymbolTableEntry(12, $<type>1);
+		paramMap[$<String>2] = ste;
+	}
     ;
 
 declarator
-	: IDENTIFIER 
+	: IDENTIFIER { $<String>$ = $<String>1;}
 	| declarator '[' constant_expression ']'
 	;
 
@@ -356,13 +364,16 @@ declaration_list
 	;
 
 declaration
-	: type_specifier declarator_list';'
+	: type_specifier {retType = $<type>1;} declarator_list';'{
+		// paramMap[]
+	}
 	;
 
 declarator_list
-	: declarator
-	{
-		
+	: declarator {
+		paramMap[$<String>1] = new SymbolTableEntry(23, retType->copy());
 	}
-	| declarator_list ',' declarator 
+	| declarator_list ',' declarator {
+		paramMap[$<String>3] = new SymbolTableEntry(23, retType->copy());
+	}
 	;

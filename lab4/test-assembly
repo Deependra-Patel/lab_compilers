@@ -1,5 +1,8 @@
-int main()
+float main(int x, float y, int t)
 {
+	int temp, try;
+	float dump, cat;
+	float tem;
 a=callme();
 		{
 			b = callanotherme();

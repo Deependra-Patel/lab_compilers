@@ -1,8 +1,8 @@
 #include <iostream>
 #include "abs.h"
 #include <string>
+#include "SymbolTable.h"
 using namespace std;
-
 
 string inverse_enum[] = {
 	"",
