@@ -197,7 +197,9 @@ class Index:public ArrayRef{
   ArrayRef* left;
   ExpAst* right;
  public:
+	string identifier_name;
   void print();
   Index();
-  Index(ArrayRef* left, ExpAst* right);
+  Index(ArrayRef* left, ExpAst* right, bool);
+  Index(string s);
 };

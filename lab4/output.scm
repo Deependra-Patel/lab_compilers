@@ -1,1 +1,1 @@
-(Block [(Ass (Identifier a) (Funcall (Identifier callme))) (Block [(Ass (Identifier b) (Funcall (Identifier callanotherme)))]) (Return (IntConst 0))])
+(Block [(Ass (Identifier a) (Index (Index (Identifier b) (IntConst 1)) (IntConst 2))) (Ass (Identifier a) (Funcall (Identifier callme))) (Block [(Ass (Identifier b) (Funcall (Identifier callanotherme)))]) (Return (IntConst 0))])

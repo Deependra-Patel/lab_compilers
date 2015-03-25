@@ -244,10 +244,16 @@ void Identifier::print(){
 }
 
 Index::Index(){}
-Index::Index(ArrayRef* left, ExpAst* right){
+Index::Index(ArrayRef* left, ExpAst* right, bool is_declarator){
   this->left = left;
   this->right = right;
+  if (is_declarator) identifier_name = ((Index *)left)->identifier_name;
 }
+
+Index::Index(string s) {
+	identifier_name = s;
+}
+
 void Index::print(){
   cout<<"(Index ";
   left->print();
