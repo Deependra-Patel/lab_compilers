@@ -33,7 +33,7 @@ translation_unit
 	;
 
 function_definition
-    : type_specifier {st = new SymbolTable(); st->retType = $<type>1; } fun_declarator {st->funcName = $<String>3;st->parameters = paramMap; paramMap.clear();} compound_statement
+: type_specifier {st = new SymbolTable(); st->retType = $<type>1; } fun_declarator {st->funcName = $<String>3;st->parameters = paramMap; paramMap.clear(); offset = 0;} compound_statement
 	{
 		st->localVariables = paramMap;
 		$<stmtAst>$ = $<stmtAst>5;
@@ -371,9 +371,11 @@ declaration
 
 declarator_list
 	: declarator {
-		paramMap[$<String>1] = new SymbolTableEntry(23, retType->copy());
+		paramMap[$<String>1] = new SymbolTableEntry(offset, retType->copy());
+		offset += retType->size();
 	}
 	| declarator_list ',' declarator {
-		paramMap[$<String>3] = new SymbolTableEntry(23, retType->copy());
+		paramMap[$<String>3] = new SymbolTableEntry(offset, retType->copy());
+		offset += retType->size();
 	}
 	;

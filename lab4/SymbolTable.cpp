@@ -21,7 +21,9 @@ Type* Type::copy(){
 	Type * copied = new Type(tag, basetype);
 	return copied;
 }
-
+int Type::size(){
+	return 4;
+}
 SymbolTableEntry::SymbolTableEntry(){}
 SymbolTableEntry::SymbolTableEntry(int addr, Type* idType){
 	this->addr = addr;

@@ -26,6 +26,7 @@ struct Type {
 	Type(Kind, Type*);   // Pointer
 	void Print();
 	Type* copy();
+	int size();
 };
 
 struct SymbolTableEntry{
