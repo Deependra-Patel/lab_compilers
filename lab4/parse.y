@@ -33,7 +33,19 @@ translation_unit
 	;
 
 function_definition
-: type_specifier {st = new SymbolTable(); st->retType = $<type>1; } fun_declarator {st->funcName = $<String>3;st->parameters = paramMap; paramMap.clear(); offset = 0;} compound_statement
+    : type_specifier
+	{
+		st = new SymbolTable();
+		st->retType = $<type>1;
+	}
+	fun_declarator
+	{
+		st->funcName = $<String>3;
+		st->parameters = paramMap;
+		paramMap.clear();
+		offset = 0;
+	}
+	compound_statement
 	{
 		st->localVariables = paramMap;
 		$<stmtAst>$ = $<stmtAst>5;
@@ -73,13 +85,19 @@ parameter_list
 parameter_declaration
 	: 	type_specifier declarator {
 		SymbolTableEntry* ste = new SymbolTableEntry(12, $<type>1);
-		paramMap[$<String>2] = ste;
+		paramMap[((Index *)$<expAst>2)->identifier_name] = ste;
 	}
     ;
 
 declarator
-	: IDENTIFIER { $<String>$ = $<String>1;}
+	: IDENTIFIER
+	{
+		$<expAst>$ = new Index($<String>1);
+	}
 	| declarator '[' constant_expression ']'
+	{
+		$<expAst>$ = new Index((Index*)$<expAst>1, $<expAst>3, true); 
+	}
 	;
 
 constant_expression 
@@ -308,7 +326,7 @@ l_expression
 	}
 	| l_expression '[' expression ']'
 	{
-		$<expAst>$ = new Index((ArrayRef*)$<expAst>1, $<expAst>3); 
+		$<expAst>$ = new Index((ArrayRef*)$<expAst>1, $<expAst>3, false);
 	}
 	;
 expression_list
@@ -364,18 +382,23 @@ declaration_list
 	;
 
 declaration
-	: type_specifier {retType = $<type>1;} declarator_list';'{
+	: type_specifier
+	{
+		retType = $<type>1;
+	}
+	declarator_list';'
+	{
 		// paramMap[]
 	}
 	;
 
 declarator_list
 	: declarator {
-		paramMap[$<String>1] = new SymbolTableEntry(offset, retType->copy());
+		paramMap[((Index *)$<expAst>1)->identifier_name] = new SymbolTableEntry(offset, retType->copy());
 		offset += retType->size();
 	}
 	| declarator_list ',' declarator {
-		paramMap[$<String>3] = new SymbolTableEntry(offset, retType->copy());
+		paramMap[((Index *)$<expAst>3)->identifier_name] = new SymbolTableEntry(offset, retType->copy());
 		offset += retType->size();
 	}
 	;

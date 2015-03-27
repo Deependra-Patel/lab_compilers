@@ -1,4 +1,4 @@
-all: distClean   lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
+all: clean lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
 	./sedscript
 	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp SymbolTable.cpp;
 	./a.out < test-assembly > junk;

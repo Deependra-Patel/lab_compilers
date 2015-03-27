@@ -30,6 +30,7 @@ struct Type {
 };
 
 struct SymbolTableEntry{
+	int index;
 	int addr;
 	Type* idType;
 	SymbolTableEntry();
@@ -53,3 +54,6 @@ struct globalTable{
 	map<string, SymbolTable*> funcSymbolTable;
 };
 
+struct declarator {
+	
+};
