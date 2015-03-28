@@ -1,4 +1,9 @@
-int main()
+
+float main()
 {
-a=function();
-}
+	float a[10];
+	void x;
+	int b;
+	b = b + b++;
+	return 0;
+} 

@@ -314,9 +314,6 @@ OpUnary::OpUnary(opNameU e){
 }
 OpUnary::OpUnary(ExpAst*x, opNameU e) {
 	child = x;
-	type = x->type;
-	x->type->Print();
-	cout << "printing inside funcion" << endl;
 	opName = e;
 }
 OpUnary::OpUnary(ExpAst * x, OpUnary* y) {

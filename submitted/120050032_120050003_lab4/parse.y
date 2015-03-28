@@ -337,7 +337,6 @@ unary_expression
 	| unary_operator postfix_expression
 	{
 		$<expAst>$ = new OpUnary($<expAst>1, (OpUnary*)$<expAst>2);
-		$<expAst>$->type = $<expAst>2->type;
 	} 
 	;
 
@@ -412,9 +411,7 @@ postfix_expression
 	}
 	| l_expression INC_OP
 	{
-		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);;
-		$<expAst>1->type->Print();
-		cout << "printing2" << endl;
+		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);
 	}
 	;
 
@@ -459,8 +456,6 @@ l_expression
 		}
 		$<expAst>$ = new Identifier($1);
 		$<expAst>$->type = st->getType($<String>1);
-		$<expAst>$->type->Print();
-		cout << "Identifier printing" << endl;
 	}
 	| l_expression '[' expression ']'
 	{
