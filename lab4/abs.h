@@ -1,26 +1,54 @@
 #include <iostream>
 #include <vector>
+#include "SymbolTable.h"
 using namespace std;
 
 
 enum opNameB{OR=1,
 			 AND=2,
 			 EQ_OP=3,
-			 NE_OP=4,
-			 LT=5,
-			 LE_OP=6,
-			 GT=7,
-			 GE_OP=8,
-			 PLUS=9,
-			 MINUS=10,
-			 MULT=11,
-			 ASSIGN=12
+       EQ_OP_INT=4,
+       EQ_OP_FLOAT=5,       
+			 NE_OP=6,
+       NE_OP_INT=7,
+       NE_OP_FLOAT=8,       
+			 LT=9,
+       LT_INT=10,
+       LT_FLOAT=11,
+			 LE_OP=12,
+       LE_OP_INT=13,
+       LE_OP_FLOAT=14, 
+			 GT=15,
+       GT_INT=16,
+       GT_FLOAT=17,
+			 GE_OP=18,
+       GE_OP_INT=19,
+       GE_OP_FLOAT=20, 
+			 PLUS=21,
+       PLUS_INT=22,
+       PLUS_FLOAT=23, 
+			 MINUS=24,  
+       MINUS_INT=25,
+       MINUS_FLOAT=26,
+			 MULT=27,
+       MULT_INT=28,   
+       MULT_FLOAT=29,
+			 ASSIGN=30,  
 };
 
 
-enum opNameU{UMINUS=13,
-			 NOT=14,
-			 PP=15
+enum opNameU{
+  UMINUS=31,
+  UMINUS_INT=32,
+  UMINUS_FLOAT=33,
+	NOT=34,
+  NOT_INT=35,
+  NOT_FLOAT=36,
+	PP=37,
+  PP_INT=38,
+  PP_FLOAT=39,
+  TO_FLOAT=40,
+  TO_INT=41
 };
 
 class symbolTable{
@@ -40,6 +68,7 @@ class abstract_astnode
 {
  public:
   virtual void print () = 0;
+  Type* type;
   //virtual std::string generate_code(const symbolTable&) = 0;
   //virtual basic_types getType() = 0;
   //virtual bool checkTypeofAST() = 0;
@@ -162,16 +191,16 @@ class Funcall:public ExpAst{
 };
 
 class FloatConst:public ExpAst{
- float  child;
  public:
+ float  child;
   void print();
   FloatConst();
   FloatConst(float x);
 };
 
 class IntConst:public ExpAst{
- int  child;
  public:
+ int  child;
   void print();
   IntConst();
   IntConst(int x);
@@ -200,6 +229,6 @@ class Index:public ArrayRef{
 	string identifier_name;
   void print();
   Index();
-  Index(ArrayRef* left, ExpAst* right, bool);
+  Index(ArrayRef* left, ExpAst* right);
   Index(string s);
 };

@@ -1,26 +1,51 @@
 #include <iostream>
 #include "abs.h"
 #include <string>
-#include "SymbolTable.h"
 using namespace std;
 
 string inverse_enum[] = {
-	"",
-	"OR",
-	"AND",
-	"EQ_OP",
-	"NE_OP",
-	"LT",
-	"LE_OP",
-	"GT",
-	"GE_OP",
-	"PLUS",
-	"MINUS",
-	"MULT",
-	"ASSIGN",
-	"UMINUS",
-	"NOT",
-	"PP"
+"",
+"OR",
+"AND",
+"EQ_OP",
+"EQ_OP_INT",
+"EQ_OP_FLOAT",
+"NE_OP",
+"NE_OP_INT",
+"NE_OP_FLOAT",
+"LT",
+"LT_INT",
+"LT_FLOAT",
+"LE_OP",
+"LE_OP_INT",
+"LE_OP_FLOAT",
+"GT",
+"GT_INT",
+"GT_FLOAT",
+"GE_OP",
+"GE_OP_INT",
+"GE_OP_FLOAT",
+"PLUS",
+"PLUS_INT",
+"PLUS_FLOAT",
+"MINUS",
+"MINUS_INT",
+"MINUS_FLOAT",
+"MULT",
+"MULT_INT",
+"MULT_FLOAT",
+"ASSIGN",
+"UMINUS",
+"UMINUS_INT",
+"UMINUS_FLOAT",
+"NOT",
+"NOT_INT",
+"NOT_FLOAT",
+"PP",
+"PP_INT",
+"PP_FLOAT",
+"TO_FLOAT",
+"TO_INT"
 };
 
 
@@ -164,9 +189,71 @@ void OpBinary::setArguments(ExpAst* x, ExpAst *y) {
 	right = y;
 }
 OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
-	left = x;
-	right = y;
-	opName = o;
+	cout << "printing x and y" << endl;
+	x->type->Print();
+	y->type->Print();
+	cout << endl;
+	if (x->type->tag == Error || y->type->tag == Error){
+		type->tag = Error;
+		return;
+	}
+	if (x->type->tag == Ok && y->type->tag == Ok){
+		type->tag = Ok;
+		return;
+	}
+
+	if (x->type->tag != Base || y->type->tag != Base){
+		if (x->type->equal(y->type)) {
+			left=x;
+			right=y;
+			opName = o;
+			return;
+		}
+		type->tag = Error;
+		return;
+	}
+	else if(x->type->basetype == y->type->basetype){
+		left = x;
+		right = y;
+		if (x->type->basetype == Int)
+			opName = (opNameB)((int)o+1);
+		if (x->type->basetype == Float)
+			opName = (opNameB)((int)o+2);
+		if (o == ASSIGN) opName = o;
+		type = x->type->copy();
+	}
+	else if (o == ASSIGN) {
+		if(x->type->basetype == Int && y->type->basetype == Float){
+			OpUnary *xf = new OpUnary(y, TO_INT);
+			left = x;
+			right = xf;
+			type = x->type->copy();
+		}
+		else if(y->type->basetype == Int && x->type->basetype == Float){
+			OpUnary *yf = new OpUnary(y, TO_FLOAT);
+			left = x;
+			right = yf;
+			type = x->type->copy();
+		} 
+		else {
+
+		} 
+	}
+	else if(x->type->basetype == Int && y->type->basetype == Float){
+		OpUnary *xf = new OpUnary(x, TO_FLOAT);
+		left = xf;
+		right = y;
+		opName = (opNameB)((int)o+2);
+		type = y->type->copy();
+	}
+
+	else if(y->type->basetype == Int && x->type->basetype == Float){
+		OpUnary *yf = new OpUnary(y, TO_FLOAT);
+		left = x;
+		right = yf;
+		opName = (opNameB)((int)o+2);
+		type = x->type->copy();
+	}	
 }
 
 void OpBinary::print(){
@@ -244,10 +331,9 @@ void Identifier::print(){
 }
 
 Index::Index(){}
-Index::Index(ArrayRef* left, ExpAst* right, bool is_declarator){
+Index::Index(ArrayRef* left, ExpAst* right){
   this->left = left;
   this->right = right;
-  if (is_declarator) identifier_name = ((Index *)left)->identifier_name;
 }
 
 Index::Index(string s) {

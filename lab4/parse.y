@@ -7,7 +7,7 @@
 /* %polymorphic INT: int; TEXT: std::string; IF: If*; */
 /* %type <TEXT> unary_operator */
 /* %type <IF> selection_statement */
-%polymorphic type : Type*; expAst : ExpAst* ; stmtAst : StmtAst*; Int : int; Float : float; String : string;
+%polymorphic type : Type*; expAst : ExpAst* ; stmtAst : StmtAst*; Int : int; Float : float; String : string; SymbolTableEntry : SymbolTableEntry*;
 
 %type <expAst> expression logical_and_expression equality_expression relational_expression additive_expression multiplicative_expression unary_expression postfix_expression primary_expression l_expression constant_expression expression_list
 %type <stmtAst> selection_statement iteration_statement assignment_statement translation_unit function_definition compound_statement statement statement_list
@@ -15,6 +15,7 @@
 %type <Float> FLOAT_CONSTANT
 %type <String> STRING_LITERAL IDENTIFIER fun_declarator
 %type <type> type_specifier
+%type <SymbolTableEntry> declarator
 %%
 
 
@@ -37,6 +38,7 @@ function_definition
 	{
 		st = new SymbolTable();
 		st->retType = $<type>1;
+		offset = 0;
 	}
 	fun_declarator
 	{
@@ -58,16 +60,19 @@ type_specifier
 	: VOID
 	{
 		$<type>$ = new Type(Kind::Base, Basetype::Void);
+		retType = $<type>$;
 		//$<Int>$ = 0;
 	}
     | INT
 	{
 		$<type>$ = new Type(Kind::Base, Basetype::Int);		
+		retType = $<type>$;
 		//$<Int>$ = 1;
 	} 
 	| FLOAT
 	{
-		$<type>$ = new Type(Kind::Base, Basetype::Float);		
+		$<type>$ = new Type(Kind::Base, Basetype::Float);
+		retType = $<type>$;		
 		//$<Int>$ = 2;
 	}
     ;
@@ -84,19 +89,25 @@ parameter_list
 
 parameter_declaration
 	: 	type_specifier declarator {
-		SymbolTableEntry* ste = new SymbolTableEntry(12, $<type>1);
-		paramMap[((Index *)$<expAst>2)->identifier_name] = ste;
+		paramMap[$<SymbolTableEntry>2->name] = $<SymbolTableEntry>2;
+		offset += 1;//$<SymbolTableEntry>2->size();
 	}
     ;
 
 declarator
 	: IDENTIFIER
 	{
-		$<expAst>$ = new Index($<String>1);
+		$<SymbolTableEntry>$ = new SymbolTableEntry(offset, retType, $<String>1);
+		cout<<($<SymbolTableEntry>$->name)<<endl;
 	}
 	| declarator '[' constant_expression ']'
 	{
-		$<expAst>$ = new Index((Index*)$<expAst>1, $<expAst>3, true); 
+		Type* cur = new Type();
+		cur->tag = Pointer;
+		cur->pointed = $<SymbolTableEntry>1->idType;
+		cur->sizeType = ((IntConst*)$<expAst>3)->child;
+		$<SymbolTableEntry>$ = $<SymbolTableEntry>1;
+		$<SymbolTableEntry>$->idType = cur;
 	}
 	;
 
@@ -254,6 +265,7 @@ multiplicative_expression
 	| multiplicative_expression '*' unary_expression
 	{
 	  $<expAst>$ = new OpBinary($<expAst>1, $<expAst>3, opNameB::MULT);
+	  //$<expAst>$->type = new Type();
 	}
 	| multiplicative_expression '/' unary_expression
 	{
@@ -322,11 +334,27 @@ primary_expression
 l_expression
     : IDENTIFIER
 	{
+		if(!st->checkScope($<String>1))
+			cout<<"Out of scope";
 		$<expAst>$ = new Identifier($1);
+		$<expAst>$->type = st->getType($<String>1);
+		cout << "printing type" << endl;
+		$<expAst>$->type->pointed->Print();
 	}
 	| l_expression '[' expression ']'
 	{
-		$<expAst>$ = new Index((ArrayRef*)$<expAst>1, $<expAst>3, false);
+		Type * t = $<expAst>1->type->pointed->copy();
+		cout<<"inside bracck"<<endl;
+		$<expAst>$ = new Index((ArrayRef* )$<expAst>1, $<expAst>3);
+		//if ($<expAst>1->type->tag == Basetype) {
+		//	$<expAst>$->type->tag = Error;
+		//}
+		//else {
+			cout << "reached here" << endl;
+		t->Print();
+			$<expAst>$->type = t;
+
+		//}
 	}
 	;
 expression_list
@@ -373,11 +401,13 @@ declaration_list
     : declaration
 	{
 		//$<expAst>$ = new Funcall($<expAst>1);
+		st->localVariables = paramMap;
 	}
 	| declaration_list declaration
 	{
 		//((Funcall*)$<expAst>1)->children.push_back($<expAst>2);
 		//$<expAst>$ = $<expAst>1;
+		st->localVariables = paramMap;
 	}
 	;
 
@@ -394,11 +424,11 @@ declaration
 
 declarator_list
 	: declarator {
-		paramMap[((Index *)$<expAst>1)->identifier_name] = new SymbolTableEntry(offset, retType->copy());
-		offset += retType->size();
+		paramMap[$<SymbolTableEntry>1->name] = $<SymbolTableEntry>1;
+		offset += $<SymbolTableEntry>1->size();
 	}
 	| declarator_list ',' declarator {
-		paramMap[((Index *)$<expAst>3)->identifier_name] = new SymbolTableEntry(offset, retType->copy());
-		offset += retType->size();
+		paramMap[$<SymbolTableEntry>3->name] = $<SymbolTableEntry>3;
+		offset += $<SymbolTableEntry>3->size();
 	}
 	;

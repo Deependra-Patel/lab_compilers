@@ -1,12 +1,7 @@
-float main(int x, float y, int t)
+float main()
 {
-	int temp[2], try;
-	float dump, cat;
-	float tem;
-	a = b[1][2];
-a=callme();
-		{
-			b = callanotherme();
-		}
-		return 0;
-}
+	int a[10];
+	float b[10];
+	a[0] = a[2] * b[2];
+	return 0;
+} 

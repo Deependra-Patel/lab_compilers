@@ -1,0 +1,11 @@
+parse.y: In member function ‘void Parser::executeAction(int)’:
+parse.y:346:14: error: ‘l_expression’ was not declared in this scope
+   if (l_expression->type->tag == Basetype) {
+              ^
+parse.y:346:49: error: expected primary-expression before ‘)’ token
+   if (l_expression->type->tag == Basetype) {
+                                                 ^
+parse.y:351:88: error: ‘struct Type’ has no member named ‘pointer’
+    $<expAst>$->type = $<expAst>1->type->pointer;
+                                                                                        ^
+make: *** [all] Error 1
