@@ -111,3 +111,7 @@ void SymbolTable::Print(){
 	printMap(localVariables);
 }
 
+void GlobalTable::insert(SymbolTable* st){
+	funcSymbolTable[st->funcName] = st;
+}
+

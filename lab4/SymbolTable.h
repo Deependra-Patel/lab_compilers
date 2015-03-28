@@ -53,10 +53,7 @@ struct SymbolTable{
 	bool checkScope(string);
 };
 
-struct globalTable{
+struct GlobalTable{
 	map<string, SymbolTable*> funcSymbolTable;
-};
-
-struct declarator {
-	
+	void insert(SymbolTable*);
 };

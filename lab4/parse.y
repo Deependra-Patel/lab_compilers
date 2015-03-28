@@ -52,7 +52,8 @@ function_definition
 		st->localVariables = paramMap;
 		$<stmtAst>$ = $<stmtAst>5;
 		st->Print();
-		// st = new SymbolTableEntry();
+		gt->insert(st);
+		st = new SymbolTable();
 	}
 	;
 
@@ -338,8 +339,6 @@ l_expression
 			cout<<"Out of scope";
 		$<expAst>$ = new Identifier($1);
 		$<expAst>$->type = st->getType($<String>1);
-		cout << "printing type" << endl;
-		$<expAst>$->type->pointed->Print();
 	}
 	| l_expression '[' expression ']'
 	{

@@ -86,8 +86,28 @@ Ass::Ass(){
 	empty = true;
 }
 Ass::Ass(ExpAst* l, ExpAst* r){
-	left = l;
-	right = r;
+	if(l->type->basetype == Int && r->type->basetype == Float){
+		OpUnary *xf = new OpUnary(r, TO_INT);
+		left = l;
+		right = xf;
+		type = new Type(Ok);
+	}
+	else if(l->type->basetype == Float && r->type->basetype == Int){
+		OpUnary *yf = new OpUnary(r, TO_FLOAT);
+		left = l;
+		right = yf;
+		type = new Type(Ok);
+	} 
+	else if(l->type->basetype == r->type->basetype){
+		left = l;
+		right = r;
+		type = new Type(Ok);
+	}
+	else{
+		type = new Type(Error);
+		left = l;
+		right = r;
+	}
 	empty = false;
 };
 
