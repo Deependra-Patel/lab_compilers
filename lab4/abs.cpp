@@ -209,10 +209,7 @@ void OpBinary::setArguments(ExpAst* x, ExpAst *y) {
 	right = y;
 }
 OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
-	cout << "printing x and y" << endl;
-	x->type->Print();
-	y->type->Print();
-	cout << endl;
+	
 	if (x->type->tag == Error || y->type->tag == Error){
 		type->tag = Error;
 		return;
@@ -241,6 +238,15 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 			opName = (opNameB)((int)o+2);
 		if (o == ASSIGN) opName = o;
 		type = x->type->copy();
+		if (o == LT || o == GT || o == LE_OP || o == GE_OP || o == NE_OP || o == EQ_OP || o == OR || o == AND){
+			if (x->type->isNumeric() && y->type->isNumeric()){
+				type = new Type(Base, Int);
+			}
+			else {
+				type = new Type(Error);
+			}
+			return ;
+		}
 	}
 	else if (o == ASSIGN) {
 		if(x->type->basetype == Int && y->type->basetype == Float){
@@ -265,6 +271,15 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 		right = y;
 		opName = (opNameB)((int)o+2);
 		type = y->type->copy();
+		if (o == LT || o == GT || o == LE_OP || o == GE_OP || o == NE_OP || o == EQ_OP || o == OR || o == AND){
+			if (x->type->isNumeric() && y->type->isNumeric()){
+				type = new Type(Base, Int);
+			}
+			else {
+				type = new Type(Error);
+			}
+			return ;
+		}
 	}
 
 	else if(y->type->basetype == Int && x->type->basetype == Float){
@@ -273,6 +288,15 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 		right = yf;
 		opName = (opNameB)((int)o+2);
 		type = x->type->copy();
+		if (o == LT || o == GT || o == LE_OP || o == GE_OP || o == NE_OP || o == EQ_OP || o == OR || o == AND){
+		if (x->type->isNumeric() && y->type->isNumeric()){
+			type = new Type(Base, Int);
+		}
+		else {
+			type = new Type(Error);
+		}
+		return ;
+	}
 	}	
 }
 

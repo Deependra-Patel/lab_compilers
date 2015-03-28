@@ -215,8 +215,8 @@ class StringConst:public ExpAst{
 };
 
 class Identifier:public ArrayRef{
- string  child;
  public:
+ string  child;
   void print();
   Identifier();
   Identifier(string x);

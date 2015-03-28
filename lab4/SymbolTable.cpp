@@ -19,6 +19,13 @@ bool Type::equal(Type* other){
 		else return pointed->equal(other->pointed);
 	}
 }
+bool Type::isNumeric(){
+	if(tag == Base && (basetype == Int || basetype == Float)){
+		return true;
+	}
+	else return false;
+}
+
 Type::Type(Kind tag){
 	this->tag = tag;
 }
@@ -64,7 +71,7 @@ int SymbolTableEntry::size(){
 	return idType->size();
 }
 void SymbolTableEntry::Print(){
-	cout<<"Addr: "<<addr<<endl;
+	cout<<"Offset: "<<addr<<endl;
 	idType->Print();
 	cout<<endl;
 }
@@ -92,6 +99,16 @@ bool SymbolTable::checkScope(string var){
 		return true;
 	else return false;
 }
+
+
+Type * SymbolTable::getParaByInd(int i) {
+	for (map<string, SymbolTableEntry*>::iterator it = parameters.begin(); it != parameters.end(); it++) {
+		if ((it->second)->addr == i) {
+			return (it->second)->idType;
+		}
+	}
+}
+
 Type* SymbolTable::getType(string var){
 	cout<<"getType"<<var<<endl;
 	if (parameters.find(var) != parameters.end())
