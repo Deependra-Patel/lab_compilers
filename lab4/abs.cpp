@@ -125,10 +125,26 @@ void Ass::print(){
 
 // for Return
 Return::Return() {
-	
+	 
 }
-Return::Return(ExpAst* c) {
-	child = c;
+Return::Return(ExpAst* c, Type * t) {
+	if (t->equal(c->type)) {
+		child = c;
+		type = new Type(Ok);
+	}
+	else if (c->type->tag != Base) {
+		type = new Type(Error);
+		child = c;
+	}
+	else if (c->type->basetype == Int) {
+		OpUnary *xf = new OpUnary(c, TO_FLOAT);
+		child = xf;
+		type = new Type(Ok);
+	}else if (c->type->basetype == Float) {
+		OpUnary *xf = new OpUnary(c, TO_INT);
+		child = xf;
+		type = new Type(Ok);
+	}
 }
 
 void Return::print() {
@@ -315,8 +331,6 @@ OpUnary::OpUnary(opNameU e){
 OpUnary::OpUnary(ExpAst*x, opNameU e) {
 	child = x;
 	type = x->type;
-	x->type->Print();
-	cout << "printing inside funcion" << endl;
 	opName = e;
 }
 OpUnary::OpUnary(ExpAst * x, OpUnary* y) {

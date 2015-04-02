@@ -1,7 +1,2 @@
-##SymbolTable::# Function Name: f#Return Type: Kind: 0#Basetype: 1#Size: 4##Printing parameters: #a => Offset: 0#Kind: 0#Basetype: 2#Size: 0###b => Offset: 1#Kind: 0#Basetype: 0#Size: 4####Printing local variables: #printing: (Block [(Return (IntConst 0))])
-Kind: 0#Basetype: 0#Size: 4#Kind: 0#Basetype: 0#Size: 4#Identifier printing
-Kind: 0#Basetype: 0#Size: 4#Kind: 0#Basetype: 0#Size: 4#Identifier printing
-Kind: 0#Basetype: 0#Size: 4#Kind: 0#Basetype: 0#Size: 4#Identifier printing
-Kind: 0#Basetype: 0#Size: 4#printing inside funcion
-Kind: 0#Basetype: 0#Size: 4#printing2
-##SymbolTable::# Function Name: main#Return Type: Kind: 0#Basetype: 1#Size: 4##Printing parameters: ##Printing local variables: #a => Offset: 0#Kind: 1#Basetype: 17240160#Size: 40###b => Offset: 40#Kind: 0#Basetype: 0#Size: 4###x => Offset: 40#Kind: 0#Basetype: 2#Size: 0###printing: (Block [(Ass (Identifier b) (PLUS_INT (Identifier b) (PP (Identifier b)))) (Return (IntConst 0))])
+##SymbolTable::# Function Name: f#Return Type: Kind: 0#Basetype: 1#Size: 4##Printing parameters: #a => Offset: 0#Kind: 0#Basetype: 0#Size: 4###b => Offset: 1#Kind: 0#Basetype: 0#Size: 4####Printing local variables: #printing: (Block [(Return (TO_FLOAT (IntConst 0)))])
+##SymbolTable::# Function Name: main#Return Type: Kind: 0#Basetype: 1#Size: 4##Printing parameters: ##Printing local variables: #a => Offset: 0#Kind: 1#Basetype: 25177792#Size: 800###b => Offset: 808#Kind: 0#Basetype: 0#Size: 4###f => Offset: 804#Kind: 0#Basetype: 0#Size: 4###p => Offset: 800#Kind: 0#Basetype: 2#Size: 0###x => Offset: 800#Kind: 0#Basetype: 1#Size: 4###printing: (Block [(Ass (Identifier x) (Index (Identifier a) (IntConst 3))) (Ass (Identifier x) (Funcall (Identifier f) (Identifier b) (Identifier b))) (Return (Identifier a))])

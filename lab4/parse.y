@@ -184,7 +184,10 @@ statement
 	}
     | RETURN expression ';'
 	{
-		$<stmtAst>$ = new Return($<expAst>2);
+		$<stmtAst>$ = new Return($<expAst>2, st->retType);
+		if ($<stmtAst>$->type->tag == Error){
+			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Incompatible return type."<<endl;			
+		}
 	}
 	;
 
@@ -198,6 +201,9 @@ assignment_statement
 		$<expAst>1->type->Print();		
 		$<expAst>3->type->Print();		
 		$<stmtAst>$ = new Ass($<expAst>1, $<expAst>3);	
+		if ($<stmtAst>$->type->tag == Error){
+			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Assignment of Incompatible types."<<endl;			
+		}
 	}
 	;
 
@@ -350,7 +356,7 @@ postfix_expression
 	{
 		
 		$<expAst>$ = new Funcall(new Identifier($<String>1));
-		bool funcok;
+		bool funcok = true;
 
 		// checking the function call
 
@@ -377,7 +383,7 @@ postfix_expression
 	{
 		((Funcall*)$<expAst>3)->children.insert(((Funcall*)$<expAst>3)->children.begin(), new Identifier($<String>1));
 		$<expAst>$ = $<expAst>3;
-		bool funcok;
+		bool funcok = true;
 
 		// checking the function call
 
@@ -403,8 +409,7 @@ postfix_expression
 			}
 		}
 		
-		// function call checking finished
-		
+		// function call checking finished		
 		if (! funcok) $<expAst>$->type = new Type(Error, Int);
 		else {
 			$<expAst>$->type = gt->funcSymbolTable[$<String>1]->retType;
@@ -414,7 +419,6 @@ postfix_expression
 	{
 		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);;
 		$<expAst>1->type->Print();
-		cout << "printing2" << endl;
 	}
 	;
 
@@ -459,14 +463,10 @@ l_expression
 		}
 		$<expAst>$ = new Identifier($1);
 		$<expAst>$->type = st->getType($<String>1);
-		$<expAst>$->type->Print();
-		cout << "Identifier printing" << endl;
 	}
 	| l_expression '[' expression ']'
 	{
-		cout<<"inside bracck"<<endl;
 		Type * t = $<expAst>1->type;
-		cout << t->tag << endl;
 		$<expAst>$ = new Index((ArrayRef* )$<expAst>1, $<expAst>3);
 		if (t->tag == 0) {
 			//$<expAst>$->type->tag = Error;
@@ -474,8 +474,6 @@ l_expression
 			$<expAst>$->type = t;
 		}
 		else {
-			cout << "reached here" << endl;
-			//t->Print();
 			$<expAst>$->type = t->pointed;
 
 		}

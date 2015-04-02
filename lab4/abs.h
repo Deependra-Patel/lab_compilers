@@ -126,7 +126,7 @@ class Return: public StmtAst{
  public:
   void print();
   Return();
-  Return(ExpAst*);
+  Return(ExpAst*, Type *);
 };
 
 class If: public StmtAst{

@@ -2,11 +2,14 @@ all: clean lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h P
 	./sedscript
 	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp SymbolTable.cpp;
 	./a.out < test-assembly > junk;
+
+data: 
 	@echo "\nOutput:"
-	@grep Error:: junk 
 	@grep printing junk > output1.scm
 	@tr "#" "\n" < output1.scm > output.scm
-	@cat output.scm
+	@cat output.scm	
+	@grep Error:: junk 
+	
         
 
 lex.cc: lex.l Scanner.ih 
