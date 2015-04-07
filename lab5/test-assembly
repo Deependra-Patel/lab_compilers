@@ -1,0 +1,15 @@
+float f(int a, int b) {
+	  return 0;
+}
+
+float main()
+{
+	int a[10][20];
+	void p;
+	float x;
+	int f;
+	int b;
+	x  = a[3];
+	x = f(b, b);
+	return a;
+} 
