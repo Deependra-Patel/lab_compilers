@@ -413,6 +413,7 @@ postfix_expression
 			cout << "Error:: On line " << d_scanner.lineNr() << " Function " << $<String>1 << " is not defined." << endl;
 			funcok = false;
 		}
+
 		else {
 			SymbolTable * calledst = gt->funcSymbolTable[$<String>1];
 			if (fc->children.size() - 1 != calledst->parameters.size()) {
@@ -420,9 +421,32 @@ postfix_expression
 			}
 			else {
 				for (int i = 1; i < fc->children.size(); i++) {
+					Type * actualtype = calledst->getParaByInd(i-1);
+
+					IntConst *temp = new IntConst(11);
+					FloatConst* temp2 = new FloatConst(1.1);
+					if (typeid(*temp) == typeid(*fc->children[i]) || typeid(*temp2) == typeid(*fc->children[i])){
+						if (!(fc->children[i]->type)->equal(actualtype)) {
+							if (fc->children[i]->type->tag == Base && actualtype->tag == Base) {
+								if (fc->children[i]->type->basetype == Int) {
+									OpUnary *xf = new OpUnary(fc->children[i], TO_FLOAT);
+									fc->children[i] = xf;
+								}
+								else if(fc->children[i]->type->basetype == Float) {
+									OpUnary *xf = new OpUnary(fc->children[i], TO_INT);
+									fc->children[i] = xf;
+								}
+							}
+							else {
+								cout << "Error:: On line " << d_scanner.lineNr() << " Parameter " << i << " of Function " << $<String>1 << " has wrong type." << endl;
+							}
+						}	
+						continue;					
+					}
+					fc->children[i]->print();
+					cout<<endl;
 					string paraname = ((Identifier *)fc->children[i])->child;
 					Type* paratype = st->getType(paraname);
-					Type * actualtype = calledst->getParaByInd(i-1);
 					if (!paratype->equal(actualtype)) {
 						if (paratype->tag == Base && actualtype->tag == Base) {
 							if (paratype->basetype == Int) {

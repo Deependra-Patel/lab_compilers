@@ -1,15 +1,11 @@
-float x()
-{
-	return 0.9;
-}
-
 int x(int a) {
-	return 0;
-}
+	int t;
+	t = 1;
+	return t;
+	}
 
 int main() {
-	float a;
-	int b;
-	a = x(a);
+	float b;
+	b = x(2.0);
 	return 1;
 }
