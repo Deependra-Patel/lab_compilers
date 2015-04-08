@@ -113,7 +113,7 @@ Type* SymbolTable::getType(string var){
 	if (parameters.find(var) != parameters.end())
 		return parameters[var]->idType;
 	else if(localVariables.find(var) != localVariables.end()){
-		localVariables[var]->idType->Print();
+		//localVariables[var]->idType->Print();
 		return localVariables[var]->idType;	
 	}
 }

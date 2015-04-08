@@ -1,15 +1,15 @@
-float f(int a, int b) {
-	  return 0;
+float x()
+{
+	return 0.9;
 }
 
-float main()
-{
-	int a[10][20];
-	void p;
-	float x;
-	int f;
+int x(int a) {
+	return 0;
+}
+
+int main() {
+	float a;
 	int b;
-	x  = a[3];
-	x = f(b, b);
-	return a;
-} 
+	a = x(a);
+	return 1;
+}

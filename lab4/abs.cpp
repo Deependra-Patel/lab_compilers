@@ -86,6 +86,12 @@ Ass::Ass(){
 	empty = true;
 }
 Ass::Ass(ExpAst* l, ExpAst* r){
+	if (l == NULL) {
+		left = l;
+		right = r;
+		type = new Type(Ok);
+		return;
+	}
 	if(l->type->basetype == Int && r->type->basetype == Float){
 		OpUnary *xf = new OpUnary(r, TO_INT);
 		left = l;
@@ -117,8 +123,10 @@ void Ass::print(){
 		return ;
 	}
 	cout << "(Ass ";
-	left->print();
-	cout << " ";
+	if (left != NULL) {
+		left->print();
+		cout << " ";
+	}
 	right->print();
 	cout << ")";
 }
