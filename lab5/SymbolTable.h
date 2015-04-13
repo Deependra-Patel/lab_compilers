@@ -54,6 +54,7 @@ struct SymbolTable{
 	void Print();
 	bool checkScope(string);
 	Type * getParaByInd(int);
+	void setOffsets();
 };
 
 struct GlobalTable{

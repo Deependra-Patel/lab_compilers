@@ -36,7 +36,7 @@ function_definition
 		st = new SymbolTable();
 		st->retType = $<type>1;
 		cout << endl;
-		offset = 0;
+		offset = 4;
 	}
 	fun_declarator
 	{
@@ -106,7 +106,7 @@ parameter_list
 parameter_declaration
 	: 	type_specifier declarator {
 		paramMap[$<SymbolTableEntry>2->name] = $<SymbolTableEntry>2;
-		offset += 1;//$<SymbolTableEntry>2->size();
+		offset += $<SymbolTableEntry>2->size();
 		if (retType->basetype == Void) {
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Parameter " << $<SymbolTableEntry>2->name <<" has type void."<< endl;
 		}
@@ -161,10 +161,13 @@ compound_statement
 	{
 		$<stmtAst>$ = $<stmtAst>2;
 	}
-    | '{' declaration_list statement_list '}'
+    | '{' declaration_list
 	{
-		$<stmtAst>$ = $<stmtAst>3;
-		cout << "cmd";
+		st->setOffsets();
+	}
+	statement_list '}'
+	{
+		$<stmtAst>$ = $<stmtAst>4;
 		$<stmtAst>$->print();
 		cout << endl;
  	}
@@ -364,7 +367,7 @@ unary_expression
 	}
 	| unary_operator postfix_expression
 	{
-		$<expAst>$ = new OpUnary($<expAst>1, (OpUnary*)$<expAst>2);
+		$<expAst>$ = new OpUnary($<expAst>2, (OpUnary*)$<expAst>1);
 		$<expAst>$->type = $<expAst>2->type;
 	} 
 	;
@@ -551,13 +554,13 @@ expression_list
 unary_operator
 	: '-'
 	{
-		$<expAst>$ = new OpUnary(opNameU::UMINUS); 
-		$<expAst>$->type->tag = Ok;
+		$<expAst>$ = new OpUnary(opNameU::UMINUS);
+		$<expAst>$->type = new Type(Ok);
  	}
 	| '!'
 	{
 		$<expAst>$ = new OpUnary(opNameU::NOT); 
-		$<expAst>$->type->tag = Ok;		
+		$<expAst>$->type = new Type(Ok);		
 	} 	
 	;
 

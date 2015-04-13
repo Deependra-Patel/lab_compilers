@@ -62,6 +62,11 @@ SymbolTableEntry::SymbolTableEntry(int addr, Type* idType){
 	this->addr = addr;
 	this->idType = idType;
 }
+void SymbolTable::setOffsets(){
+	for (std::map<string, SymbolTableEntry*>::iterator it=localVariables.begin(); it!=localVariables.end(); ++it){
+	    it->second->addr = -(it->second->addr + it->second->size());
+	}
+}
 SymbolTableEntry::SymbolTableEntry(int addr, Type* idType, string name){
 	this->name = name;
 	this->addr = addr;
