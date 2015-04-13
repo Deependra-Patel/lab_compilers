@@ -37,6 +37,7 @@ function_definition
 		st->retType = $<type>1;
 		cout << endl;
 		offset = 4;
+		paramMap.clear();
 	}
 	fun_declarator
 	{
@@ -129,12 +130,13 @@ declarator
 		if ($<expAst>3->type->basetype != Int){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Non integer Array index of variable."<< endl;
 		}
-		Type* cur = new Type();
-		cur->tag = Pointer;
-		cur->pointed = $<SymbolTableEntry>1->idType;
-		cur->sizeType = ((IntConst*)$<expAst>3)->child;
-		$<SymbolTableEntry>$ = $<SymbolTableEntry>1;
-		$<SymbolTableEntry>$->idType = cur;
+		/* Type* cur = new Type(); */
+		/* cur->tag = Pointer;                                                                    */
+		/* cur->pointed = $<SymbolTableEntry>1->idType; */
+		/* cur->sizeType = ((IntConst*)$<expAst>3)->child; */
+		/* $<SymbolTableEntry>$ = $<SymbolTableEntry>1; */
+		/* $<SymbolTableEntry>$->idType = cur; */
+		$<SymbolTableEntry>$->idType->update(((IntConst*)$<expAst>3)->child);
 	}
 	;
 
@@ -236,6 +238,7 @@ expression
 	: logical_and_expression
 	{
 		$<expAst>$ = $<expAst>1;
+		$<expAst>$->generate_code(st);
 	}
 	| expression OR_OP logical_and_expression
 	{
@@ -354,7 +357,7 @@ multiplicative_expression
 	}
 	| multiplicative_expression '/' unary_expression
 	{
-	  $<expAst>$ = new OpBinary($<expAst>1, $<expAst>3, opNameB::MULT);//no div operator defined
+	  $<expAst>$ = new OpBinary($<expAst>1, $<expAst>3, opNameB::DIV);//no div operator defined
 		if ($<expAst>$->type->tag == Error){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Type mismatch for division. Not numeric"<<endl;			
 		}		  

@@ -1,8 +1,27 @@
 #include <iostream>
 #include "abs.h"
 #include <string>
+#include <sstream>
 using namespace std;
-vector<string> stacks = {"eax", "ebx", "ecx", "edx"};
+vector<string> regs = {"edx", "ecx", "ebx", "eax"};
+
+
+string int_to_str(int a) {
+	stringstream ss;
+	ss << a;
+	return ss.str();
+}
+
+void swap() {
+	string reg1 = regs.back();
+	regs.pop_back();
+	string reg2 = regs.back();
+	regs.pop_back();
+	regs.push_back(reg1);
+	regs.push_back(reg2);
+	return;
+}
+
 
 string inverse_enum[] = {
 "",
@@ -35,6 +54,9 @@ string inverse_enum[] = {
 "MULT",
 "MULT_INT",
 "MULT_FLOAT",
+"DIV",
+"DIV_INT",
+"DIV_FLOAT",
 "ASSIGN",
 "UMINUS",
 "UMINUS_INT",
@@ -49,7 +71,7 @@ string inverse_enum[] = {
 "TO_INT"
 };
 
-string Seq::generate_code(const SymbolTable* st){
+string Seq::generate_code(SymbolTable* st){
 	return "";
 }
 Seq::Seq(){}
@@ -66,7 +88,7 @@ void Seq::print(){
 	cout <<")";
 }
 
-string BlockStatement::generate_code(const SymbolTable* st){
+string BlockStatement::generate_code(SymbolTable* st){
 	string str = "";
 	str += "\nvoid "+st->funcName+"(){\n";
 	str += "pushi(ebp); // Setting dynamic link\nmove(esp,ebp); // Setting dynamic link";
@@ -91,7 +113,7 @@ void BlockStatement::print(){
 
 
 // for Ass
-string Ass::generate_code(const SymbolTable* st){
+string Ass::generate_code(SymbolTable* st){
 	return "";
 }
 Ass::Ass(){
@@ -144,7 +166,7 @@ void Ass::print(){
 }
 
 // for Return
-string Return::generate_code(const SymbolTable* st){
+string Return::generate_code(SymbolTable* st){
 	return "";
 }
 Return::Return() {
@@ -177,7 +199,7 @@ void Return::print() {
 }
 
 // for If
-string If::generate_code(const SymbolTable* st){
+string If::generate_code(SymbolTable* st){
 	return "";
 }
 If::If() {
@@ -199,7 +221,7 @@ void If::print() {
 	cout << ")";
 }
 // for While
-string While::generate_code(const SymbolTable* st){
+string While::generate_code(SymbolTable* st){
 	return "";
 }
 While::While() {
@@ -219,7 +241,7 @@ void While::print() {
 }
 
 // for For
-string For::generate_code(const SymbolTable* st){
+string For::generate_code(SymbolTable* st){
 	return "";
 }
 For::For() {
@@ -244,8 +266,55 @@ void For::print() {
 	cout << ")";
 }
 
-string OpBinary::generate_code(const SymbolTable* st){
-	return "";
+string OpBinary::generate_code(SymbolTable* st){
+	string str = left->generate_code(st);
+	if (regs.size() == 2) {
+		if (left->type->basetype == Int) {
+			str += "\t pushi("+ regs.back() +");    // pushing temporary storage\n";
+		}
+		else {
+			str += "\t pushf("+ regs.back() +");    // pushing temporary storage\n";
+		}
+		str += right->generate_code(st);
+		if (left->type->basetype == Int) {
+			str += "\t loadi(esp, "+ regs[0] +");    // loading temporary storage\n";
+			if (opName == MULT_INT) str += "\t muli("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == PLUS_INT) str += "\t addi("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == MINUS_INT) str += "\t muli(-1, "+ regs[1] +");\n\t addi("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == DIV_INT) str += "\t divi("+ regs[0] +", "+ regs[1] +");\n";
+			str += "\t popi(1);\n";
+		}
+		else {
+			str += "\t loadf(esp, "+ regs[0] +");    // loading temporary storage\n";
+			if (opName == MULT_FLOAT) str += "\t mulf("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == PLUS_FLOAT) str += "\t addf("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == MINUS_FLOAT) str += "\t mulf(-1, "+ regs[1] +");\n\t addf("+ regs[0] +", "+ regs[1] +");\n";
+			if (opName == DIV_FLOAT) str += "\t divf("+ regs[0] +", "+ regs[1] +");\n";
+			str += "\t popf(1);\n";
+		}
+		
+	}
+	else {
+		string left_reg = regs.back();
+		regs.pop_back();
+		str += right->generate_code(st);
+		if (left->type->basetype == Int) {
+			if (opName == MULT_INT) str += "\t muli("+ left_reg+", "+ regs.back() +");\n";
+			if (opName == PLUS_INT) str += "\t addi("+ left_reg	+", "+ regs.back() +");\n";
+			if (opName == MINUS_INT) str += "\t muli(-1, "+ regs.back() +");\n\t addi("+ left_reg +", "+ regs.back() +");\n";
+			if (opName == DIV_INT) str += "\t divi("+ left_reg +", "+ regs.back() +");\n";
+		}
+		else {
+			if (opName == MULT_FLOAT) str += "\t mulf("+ left_reg +", "+ regs.back() +");\n";
+			if (opName == PLUS_FLOAT) str += "\t addf("+ left_reg +", "+ regs.back() +");\n";
+			if (opName == MINUS_FLOAT) str += "\t mulf(-1, "+ regs.back() +");\n\t addf("+ left_reg +", "+ regs.back() +");\n";
+			if (opName == DIV_FLOAT) str += "\t divf("+ left_reg +", "+ regs.back() +");\n";
+		}
+		regs.push_back(left_reg);
+		swap();
+	}
+	cout << "printing opbinary:\n" << str << " " << regs.back() << " " << regs.size() << endl;
+	return str;
 }
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(opNameB e){
@@ -356,7 +425,7 @@ void OpBinary::print(){
   cout<<")";
 }
 
-string OpUnary::generate_code(const SymbolTable* st){
+string OpUnary::generate_code(SymbolTable* st){
 	return "";
 }
 OpUnary::OpUnary(){}
@@ -380,7 +449,7 @@ void OpUnary::print(){
 
 extern GlobalTable* gt;
 
-string Funcall::generate_code(const SymbolTable* st){
+string Funcall::generate_code(SymbolTable* st){
 	string str = "";
 	if (gt->getRetType(st->funcName)->basetype == Int)
 		str += "pushi(1); //return";
@@ -392,10 +461,10 @@ string Funcall::generate_code(const SymbolTable* st){
 	for (int i = 1; i<children.size(); i++){
 		str += children[i]->generate_code(st);
 		if (children[i]->type->basetype == Int){
-			str += "\t pushi("+stacks[0]+");//args\n";
+			str += "\t pushi("+regs[0]+");//args\n";
 		}
 		else{
-			str += "\t pushf("+stacks[0]+");//args\n";
+			str += "\t pushf("+regs[0]+");//args\n";
 		}
 	}
 	
@@ -420,7 +489,7 @@ void Funcall::print(){
 }
 
 
-string FloatConst::generate_code(const SymbolTable* st){
+string FloatConst::generate_code(SymbolTable* st){
 	return "";
 }
 FloatConst::FloatConst(float x){
@@ -431,7 +500,7 @@ void FloatConst::print(){
 }
 
 
-string IntConst::generate_code(const SymbolTable* st){
+string IntConst::generate_code(SymbolTable* st){
 	return "";
 }
 IntConst::IntConst(){}
@@ -443,7 +512,7 @@ void IntConst::print(){
 }
 
 
-string StringConst::generate_code(const SymbolTable* st){
+string StringConst::generate_code(SymbolTable* st){
 	return "";
 }
 StringConst::StringConst(string x){
@@ -454,8 +523,22 @@ void StringConst::print(){
 }
 
 
-string Identifier::generate_code(const SymbolTable* st){
-	return "";
+string Identifier::generate_code( SymbolTable* st){
+	string str = "";
+	if (st->checkScope(child)) {
+		Type * tp = st->getType(child);
+		int offset = st->getOffset(child);
+		stringstream ss;
+		ss << offset;
+		string offset_str = ss.str();
+		if (tp->tag == Base && tp->basetype == Int) str += "\t loadi(ind(ebp, "+ offset_str +"), "+ regs.back() +"));\n";
+		else if (tp->tag == Base && tp->basetype == Float)str += "\t loadf(ind(ebp, "+ offset_str +"), "+ regs.back() +"));\n";
+		else if (tp->tag == Pointer) {
+			str += "\t move("+ offset_str +", "+ regs.back() +");\n";
+			str += "\t addi(ebp,"+ regs.back() +"));\n";
+		}
+	}
+	return str;
 }
 Identifier::Identifier(){}
 Identifier::Identifier(string x){
@@ -466,8 +549,43 @@ void Identifier::print(){
 }
 
 
-string Index::generate_code(const SymbolTable* st){
-	return "";
+string Index::generate_code(SymbolTable* st){
+	string str = "";
+	str += left->generate_code(st);
+	if (regs.size() == 2) {
+		str += "\t pushi("+ regs.back() +");\n";
+		str += right->generate_code(st);
+		str += "\t loadi(esp, "+ regs[0] +");\n";
+		str += "\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); \n";
+		str += "\t addi("+ regs[0] +", "+ regs.back() +"); \n";
+		if (type->tag == Base) {
+			if (type->basetype == Int) {
+				str += "\t loadi(ind("+ regs.back() +"), "+ regs.back() +"); \n";
+			}
+			else if (type->basetype == Float) {
+				str += "\t loadf(ind("+ regs.back() +"), "+ regs.back() +"); \n";
+			}
+		}
+		str += "\t popi(1);\n";
+	}
+	else {
+		string left_reg = regs.back();
+		regs.pop_back();
+		str += right->generate_code(st);
+		str += "\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); \n";
+		str += "\t addi("+ left_reg +", "+ regs.back() +"); \n";
+		if (type->tag == Base) {
+			if (type->basetype == Int) {
+				str += "\t loadi(ind("+ regs.back() +"), "+ regs.back() +"); \n";
+			}
+			else if (type->basetype == Float) {
+				str += "\t loadf(ind("+ regs.back() +"), "+ regs.back() +"); \n";
+			}
+		}
+		regs.push_back(left_reg);
+		swap();
+	}
+	return str;
 }
 Index::Index(){}
 Index::Index(ArrayRef* left, ExpAst* right){

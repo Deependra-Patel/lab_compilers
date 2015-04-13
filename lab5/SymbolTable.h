@@ -27,6 +27,7 @@ struct Type {
 	Type* copy();
 	int size();
 	bool isNumeric();
+	void update(int);
 };
 
 struct SymbolTableEntry{
@@ -55,6 +56,7 @@ struct SymbolTable{
 	bool checkScope(string);
 	Type * getParaByInd(int);
 	void setOffsets();
+	int getOffset(string);
 };
 
 struct GlobalTable{

@@ -1,6 +1,11 @@
-int main(int p, int q, int r){
-	int p[10][3];
+int f(){
 	int x;
-	int y;
+	return 0;
+}
+
+int main(){
+	int a[10][20];
+	int x, y;
+	a[5][3] = a[x+y][x-y] + a[x+y][x-y];
 	return 3;
 }

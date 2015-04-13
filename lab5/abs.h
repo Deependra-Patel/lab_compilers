@@ -34,22 +34,25 @@ enum opNameB{OR=1,
 			 MULT=27,
        MULT_INT=28,   
        MULT_FLOAT=29,
-			 ASSIGN=30,  
+			 DIV = 30,
+			 DIV_INT = 31,
+			 DIV_FLOAT = 32,
+			 ASSIGN=33,  
 };
 
 
 enum opNameU{
-  UMINUS=31,
-  UMINUS_INT=32,
-  UMINUS_FLOAT=33,
-	NOT=34,
-  NOT_INT=35,
-  NOT_FLOAT=36,
-	PP=37,
-  PP_INT=38,
-  PP_FLOAT=39,
-  TO_FLOAT=40,
-  TO_INT=41
+  UMINUS=34,
+  UMINUS_INT=35,
+  UMINUS_FLOAT=36,
+	NOT=37,
+  NOT_INT=38,
+  NOT_FLOAT=39,
+	PP=40,
+  PP_INT=41,
+  PP_FLOAT=42,
+  TO_FLOAT=43,
+  TO_INT=44
 };
 
 class symbolTable{
@@ -70,7 +73,7 @@ class abstract_astnode
  public:
   virtual void print () = 0;
   Type* type;
-  virtual std::string generate_code(const SymbolTable*) = 0;
+  virtual std::string generate_code(SymbolTable*) = 0;
   //virtual basic_types getType() = 0;
   //virtual bool checkTypeofAST() = 0;
  protected:
@@ -81,17 +84,17 @@ class abstract_astnode
 
 class StmtAst:public abstract_astnode{
  public:
-	string generate_code(const SymbolTable*) = 0;
+	string generate_code(SymbolTable*) = 0;
 	void print () = 0;
 };
 class ExpAst:public abstract_astnode{
  public:	
-	string generate_code(const SymbolTable*) = 0;
+	string generate_code(SymbolTable*) = 0;
 	void print () = 0;
 };
 class ArrayRef: public ExpAst{
  public:
-	string generate_code(const SymbolTable*) = 0;	
+	string generate_code(SymbolTable*) = 0;	
 	void print () = 0;
 };
 
@@ -99,7 +102,7 @@ class Seq:public StmtAst{
  protected:
   StmtAst *left, *right;
  public:
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
 	void print();
 	Seq();
 	Seq(StmtAst* left, StmtAst* right);
@@ -111,7 +114,7 @@ class BlockStatement:public StmtAst{
 	vector<StmtAst*> children;
 	void print();
 	BlockStatement();
-	string generate_code(const SymbolTable*);
+	string generate_code(SymbolTable*);
 	BlockStatement(StmtAst*);
 };
 
@@ -123,7 +126,7 @@ public:
   bool empty;
   void print();
   Ass();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
 	Ass(ExpAst* left, ExpAst* right);
 };
 
@@ -132,7 +135,7 @@ class Return: public StmtAst{
  public:
   void print();
   Return();
-	string generate_code(const SymbolTable*);
+	string generate_code(SymbolTable*);
 	Return(ExpAst*, Type *);
 };
 
@@ -142,7 +145,7 @@ class If: public StmtAst{
  public:
   void print();
   If();
-	string generate_code(const SymbolTable*);  
+	string generate_code(SymbolTable*);  
   If(ExpAst*, StmtAst*, StmtAst*);
 };
 
@@ -153,7 +156,7 @@ class While:public StmtAst{
  public:
   void print();
   While();
-	string generate_code(const SymbolTable*);  
+	string generate_code(SymbolTable*);  
   While(ExpAst*, StmtAst*);
 };
 
@@ -164,7 +167,7 @@ class For:public StmtAst{
  public:
   void print();
   For();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   For(ExpAst*, ExpAst*, ExpAst*, StmtAst*);
 };
 
@@ -176,7 +179,7 @@ class OpBinary:public ExpAst{
   void print();
   OpBinary();
   void setArguments(ExpAst*, ExpAst*);
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   OpBinary(ExpAst*, ExpAst*, opNameB);
   OpBinary(opNameB);
 };
@@ -189,7 +192,7 @@ class OpUnary:public ExpAst{
   OpUnary();
   OpUnary(ExpAst*, OpUnary*);
   OpUnary(ExpAst*, opNameU);
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   OpUnary(opNameU);
 };
 
@@ -199,7 +202,7 @@ class Funcall:public ExpAst{
   void print();
   Funcall();
   Funcall(vector<ExpAst*>);
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   Funcall(ExpAst*);
 };
 
@@ -208,7 +211,7 @@ class FloatConst:public ExpAst{
 	float  child;
 	void print();
 	FloatConst();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
 	FloatConst(float x);
 };
 
@@ -217,7 +220,7 @@ class IntConst:public ExpAst{
  int  child;
   void print();
   IntConst();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   IntConst(int x);
 };
 
@@ -226,7 +229,7 @@ class StringConst:public ExpAst{
  public:
   void print();
   StringConst();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   StringConst(string x);
 };
 
@@ -235,7 +238,7 @@ class Identifier:public ArrayRef{
  string  child;
   void print();
   Identifier();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   Identifier(string x);
 };
 
@@ -246,7 +249,7 @@ class Index:public ArrayRef{
 	string identifier_name;
   void print();
   Index();
-  	string generate_code(const SymbolTable*);
+  	string generate_code(SymbolTable*);
   Index(ArrayRef* left, ExpAst* right);
   Index(string s);
 };

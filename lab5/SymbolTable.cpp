@@ -39,6 +39,7 @@ Type::Type(Kind tag, Type* pointed){
 }
 void Type::Print(){
 	cout<<"Kind: "<<tag<<"#Basetype: "<<basetype<<"#Size: "<<size()<<"#";
+	if (tag == Pointer) cout << pointed->size() << "#";
 }
 
 Type* Type::copy(){
@@ -55,6 +56,15 @@ int Type::size() {
 	else if (tag == Pointer){
 		return sizeType*pointed->size();
 	}
+}
+
+void Type::update(int s) {
+	if (tag == Base) {
+		tag = Pointer;
+		pointed = new Type(Base, basetype);
+		sizeType = s;
+	}
+	else pointed->update(s);
 }
 
 SymbolTableEntry::SymbolTableEntry(){}
@@ -89,6 +99,12 @@ SymbolTable::SymbolTable(Type* retType, map<string, SymbolTableEntry*> parameter
 void SymbolTable::addLocalVariable(string identifier, int addr, Type* idType){
 	SymbolTableEntry* param = new SymbolTableEntry(addr, idType);
 	localVariables[identifier] = param;
+}
+
+int SymbolTable::getOffset(string varname) {
+	if (parameters.find(varname) != parameters.end()) return parameters[varname]->addr;
+	if (localVariables.find(varname) != localVariables.end()) return localVariables[varname]->addr;
+	return 0;
 }
 
 void printMap(map<string, SymbolTableEntry*> myMap){
