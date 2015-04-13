@@ -51,10 +51,11 @@ function_definition
 		$<stmtAst>$ = $<stmtAst>5;
 		st->Print();
 		gt->insert(st);
-		st = new SymbolTable();
 		cout << "printing: ";
 		$<stmtAst>$->print();
+		$<stmtAst>$->generate_code(st);
 		cout << endl;
+		st = new SymbolTable();		
 	}
 	;
 
@@ -80,8 +81,21 @@ type_specifier
     ;
 
 fun_declarator
-	: IDENTIFIER '(' parameter_list ')' {$<String>$ = $<String>1;}
-    | IDENTIFIER '(' ')' {$<String>$ = $<String>1;}
+	: IDENTIFIER '(' parameter_list ')'
+	{
+		if (gt->funcSymbolTable.find($<String>1) != gt->funcSymbolTable.end()) {
+			cout << "Error:: On line " << d_scanner.lineNr() << " Function with the same name exists." << endl;
+		}
+		$<String>$ = $<String>1;
+	}
+    | IDENTIFIER
+	'(' ')'
+	{
+		if (gt->funcSymbolTable.find($<String>1) != gt->funcSymbolTable.end()) {
+			cout << "Error:: On line " << d_scanner.lineNr() << " Function with the same name exists." << endl;
+		}
+		$<String>$ = $<String>1;
+	}
 	;
 
 parameter_list
@@ -105,6 +119,9 @@ declarator
 		$<SymbolTableEntry>$ = new SymbolTableEntry(offset, retType, $<String>1);
 		if (st->checkScope($<String>1)){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Variable '"<< $<String>1<<"' already defined"<<endl;
+		}
+		else if (gt->funcSymbolTable.find($<String>1) != gt->funcSymbolTable.end()) {
+			cout << "Error:: On line " << d_scanner.lineNr() << " Function with the same name exists." << endl;
 		}
 	}
 	| declarator '[' constant_expression ']'
@@ -198,13 +215,18 @@ assignment_statement
 	}
 	|  l_expression '=' expression ';'
 	{		
-		$<expAst>1->type->Print();		
-		$<expAst>3->type->Print();		
+		//$<expAst>1->type->Print();		
+		//$<expAst>3->type->Print();		
 		$<stmtAst>$ = new Ass($<expAst>1, $<expAst>3);	
 		if ($<stmtAst>$->type->tag == Error){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Assignment of Incompatible types."<<endl;			
 		}
 	}
+    | expression ';'
+    {
+		$<stmtAst>$ = new Ass(NULL, $<expAst>1);	
+	
+    }
 	;
 
 expression
@@ -392,6 +414,7 @@ postfix_expression
 			cout << "Error:: On line " << d_scanner.lineNr() << " Function " << $<String>1 << " is not defined." << endl;
 			funcok = false;
 		}
+
 		else {
 			SymbolTable * calledst = gt->funcSymbolTable[$<String>1];
 			if (fc->children.size() - 1 != calledst->parameters.size()) {
@@ -399,11 +422,46 @@ postfix_expression
 			}
 			else {
 				for (int i = 1; i < fc->children.size(); i++) {
+					Type * actualtype = calledst->getParaByInd(i-1);
+
+					IntConst *temp = new IntConst(11);
+					FloatConst* temp2 = new FloatConst(1.1);
+					if (typeid(*temp) == typeid(*fc->children[i]) || typeid(*temp2) == typeid(*fc->children[i])){
+						if (!(fc->children[i]->type)->equal(actualtype)) {
+							if (fc->children[i]->type->tag == Base && actualtype->tag == Base) {
+								if (fc->children[i]->type->basetype == Int) {
+									OpUnary *xf = new OpUnary(fc->children[i], TO_FLOAT);
+									fc->children[i] = xf;
+								}
+								else if(fc->children[i]->type->basetype == Float) {
+									OpUnary *xf = new OpUnary(fc->children[i], TO_INT);
+									fc->children[i] = xf;
+								}
+							}
+							else {
+								cout << "Error:: On line " << d_scanner.lineNr() << " Parameter " << i << " of Function " << $<String>1 << " has wrong type." << endl;
+							}
+						}	
+						continue;					
+					}
+					fc->children[i]->print();
+					cout<<endl;
 					string paraname = ((Identifier *)fc->children[i])->child;
 					Type* paratype = st->getType(paraname);
-					Type * actualtype = calledst->getParaByInd(i-1);
 					if (!paratype->equal(actualtype)) {
-						cout << "Error:: On line " << d_scanner.lineNr() << " Parameter " << i << " of Function " << $<String>1 << " has wrong type." << endl;
+						if (paratype->tag == Base && actualtype->tag == Base) {
+							if (paratype->basetype == Int) {
+								OpUnary *xf = new OpUnary(fc->children[i], TO_FLOAT);
+								fc->children[i] = xf;
+							}
+							else if(paratype->basetype == Float) {
+								OpUnary *xf = new OpUnary(fc->children[i], TO_INT);
+								fc->children[i] = xf;
+							}
+						}
+						else {
+							cout << "Error:: On line " << d_scanner.lineNr() << " Parameter " << i << " of Function " << $<String>1 << " has wrong type." << endl;
+						}
 					}
 				}
 			}

@@ -56,3 +56,7 @@ run:
 plot:
 	dot -Tps graph.gv -o graph.ps
 	gnome-open graph.ps
+
+lab5: machine.cc code.asm
+	g++ -g3 -O0 machine.cc
+	./a.out

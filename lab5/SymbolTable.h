@@ -1,6 +1,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+
 using namespace std;
 enum Kind {
 	Base, Pointer, Error, Ok
@@ -58,4 +59,5 @@ struct SymbolTable{
 struct GlobalTable{
 	map<string, SymbolTable*> funcSymbolTable;
 	void insert(SymbolTable*);
+	Type* getRetType(string name);
 };

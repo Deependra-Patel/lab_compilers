@@ -2,6 +2,7 @@
 #include "abs.h"
 #include <string>
 using namespace std;
+vector<string> stacks = {"eax", "ebx", "ecx", "edx"};
 
 string inverse_enum[] = {
 "",
@@ -48,7 +49,9 @@ string inverse_enum[] = {
 "TO_INT"
 };
 
-
+string Seq::generate_code(const SymbolTable* st){
+	return "";
+}
 Seq::Seq(){}
 Seq::Seq(StmtAst* l, StmtAst* r){
 	left = l;
@@ -63,7 +66,13 @@ void Seq::print(){
 	cout <<")";
 }
 
-
+string BlockStatement::generate_code(const SymbolTable* st){
+	string str = "";
+	str += "\nvoid "+st->funcName+"(){\n";
+	str += "pushi(ebp); // Setting dynamic link\nmove(esp,ebp); // Setting dynamic link";
+	cout<<str<<endl;
+	return "";
+}
 BlockStatement::BlockStatement(){}
 BlockStatement::BlockStatement(StmtAst* c){
 	children.push_back(c);
@@ -82,10 +91,19 @@ void BlockStatement::print(){
 
 
 // for Ass
+string Ass::generate_code(const SymbolTable* st){
+	return "";
+}
 Ass::Ass(){
 	empty = true;
 }
 Ass::Ass(ExpAst* l, ExpAst* r){
+	if (l == NULL) {
+		left = l;
+		right = r;
+		type = new Type(Ok);
+		return;
+	}	
 	if(l->type->basetype == Int && r->type->basetype == Float){
 		OpUnary *xf = new OpUnary(r, TO_INT);
 		left = l;
@@ -117,13 +135,18 @@ void Ass::print(){
 		return ;
 	}
 	cout << "(Ass ";
-	left->print();
-	cout << " ";
+	if (left != NULL) {
+		left->print();
+		cout << " ";
+	}
 	right->print();
 	cout << ")";
 }
 
 // for Return
+string Return::generate_code(const SymbolTable* st){
+	return "";
+}
 Return::Return() {
 	 
 }
@@ -154,7 +177,9 @@ void Return::print() {
 }
 
 // for If
-
+string If::generate_code(const SymbolTable* st){
+	return "";
+}
 If::If() {
 	
 }
@@ -174,7 +199,9 @@ void If::print() {
 	cout << ")";
 }
 // for While
-
+string While::generate_code(const SymbolTable* st){
+	return "";
+}
 While::While() {
 	
 }
@@ -192,7 +219,9 @@ void While::print() {
 }
 
 // for For
-
+string For::generate_code(const SymbolTable* st){
+	return "";
+}
 For::For() {
 	
 }
@@ -215,6 +244,9 @@ void For::print() {
 	cout << ")";
 }
 
+string OpBinary::generate_code(const SymbolTable* st){
+	return "";
+}
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(opNameB e){
   opName = e;
@@ -324,6 +356,9 @@ void OpBinary::print(){
   cout<<")";
 }
 
+string OpUnary::generate_code(const SymbolTable* st){
+	return "";
+}
 OpUnary::OpUnary(){}
 OpUnary::OpUnary(opNameU e){
   opName = e;
@@ -343,6 +378,30 @@ void OpUnary::print(){
   cout<<")";
 }
 
+extern GlobalTable* gt;
+
+string Funcall::generate_code(const SymbolTable* st){
+	string str = "";
+	if (gt->getRetType(st->funcName)->basetype == Int)
+		str += "pushi(1); //return";
+	else if (gt->getRetType(st->funcName)->basetype == Float)
+		str += "pushi(1); //return";
+	else if (gt->getRetType(st->funcName)->basetype == Void)
+		str += "pushi(0); //return ";
+				
+	for (int i = 1; i<children.size(); i++){
+		str += children[i]->generate_code(st);
+		if (children[i]->type->basetype == Int){
+			str += "\t pushi("+stacks[0]+");//args\n";
+		}
+		else{
+			str += "\t pushf("+stacks[0]+");//args\n";
+		}
+	}
+	
+	cout<<str<<endl;
+	return str;
+}
 Funcall::Funcall(){}
 Funcall::Funcall(vector<ExpAst*> exps){
   children = exps;
@@ -360,6 +419,10 @@ void Funcall::print(){
   cout<<")";
 }
 
+
+string FloatConst::generate_code(const SymbolTable* st){
+	return "";
+}
 FloatConst::FloatConst(float x){
   child = x;
 }
@@ -367,6 +430,10 @@ void FloatConst::print(){
   cout<<"(FloatConst "<<child<<")";
 }
 
+
+string IntConst::generate_code(const SymbolTable* st){
+	return "";
+}
 IntConst::IntConst(){}
 IntConst::IntConst(int x){
   child = x;
@@ -375,6 +442,10 @@ void IntConst::print(){
   cout<<"(IntConst "<<child<<")";
 }
 
+
+string StringConst::generate_code(const SymbolTable* st){
+	return "";
+}
 StringConst::StringConst(string x){
   child = x;
 }
@@ -383,6 +454,9 @@ void StringConst::print(){
 }
 
 
+string Identifier::generate_code(const SymbolTable* st){
+	return "";
+}
 Identifier::Identifier(){}
 Identifier::Identifier(string x){
   child = x;
@@ -391,6 +465,10 @@ void Identifier::print(){
   cout<<"(Identifier "<<child<<")";
 }
 
+
+string Index::generate_code(const SymbolTable* st){
+	return "";
+}
 Index::Index(){}
 Index::Index(ArrayRef* left, ExpAst* right){
   this->left = left;

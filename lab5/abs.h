@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "SymbolTable.h"
+
 using namespace std;
 
 
@@ -69,7 +70,7 @@ class abstract_astnode
  public:
   virtual void print () = 0;
   Type* type;
-  //virtual std::string generate_code(const symbolTable&) = 0;
+  virtual std::string generate_code(const SymbolTable*) = 0;
   //virtual basic_types getType() = 0;
   //virtual bool checkTypeofAST() = 0;
  protected:
@@ -79,46 +80,51 @@ class abstract_astnode
 };
 
 class StmtAst:public abstract_astnode{
- public:	
-  void print () = 0;
+ public:
+	string generate_code(const SymbolTable*) = 0;
+	void print () = 0;
 };
 class ExpAst:public abstract_astnode{
  public:	
-  void print () = 0;
+	string generate_code(const SymbolTable*) = 0;
+	void print () = 0;
 };
 class ArrayRef: public ExpAst{
- public:	
-  void print () = 0;
+ public:
+	string generate_code(const SymbolTable*) = 0;	
+	void print () = 0;
 };
 
 class Seq:public StmtAst{
  protected:
   StmtAst *left, *right;
  public:
-  void print();
-  Seq();
-  Seq(StmtAst* left, StmtAst* right);
+  	string generate_code(const SymbolTable*);
+	void print();
+	Seq();
+	Seq(StmtAst* left, StmtAst* right);
 };
 
 
 class BlockStatement:public StmtAst{
  public:
 	vector<StmtAst*> children;
- public:
-  void print();
-  BlockStatement();
-  BlockStatement(StmtAst*);
+	void print();
+	BlockStatement();
+	string generate_code(const SymbolTable*);
+	BlockStatement(StmtAst*);
 };
 
 
 
 class Ass: public StmtAst{
   ExpAst* left, *right;
- public:
+public:
   bool empty;
   void print();
   Ass();
-  Ass(ExpAst* left, ExpAst* right);
+  	string generate_code(const SymbolTable*);
+	Ass(ExpAst* left, ExpAst* right);
 };
 
 class Return: public StmtAst{
@@ -126,7 +132,8 @@ class Return: public StmtAst{
  public:
   void print();
   Return();
-  Return(ExpAst*, Type *);
+	string generate_code(const SymbolTable*);
+	Return(ExpAst*, Type *);
 };
 
 class If: public StmtAst{
@@ -135,6 +142,7 @@ class If: public StmtAst{
  public:
   void print();
   If();
+	string generate_code(const SymbolTable*);  
   If(ExpAst*, StmtAst*, StmtAst*);
 };
 
@@ -145,6 +153,7 @@ class While:public StmtAst{
  public:
   void print();
   While();
+	string generate_code(const SymbolTable*);  
   While(ExpAst*, StmtAst*);
 };
 
@@ -155,6 +164,7 @@ class For:public StmtAst{
  public:
   void print();
   For();
+  	string generate_code(const SymbolTable*);
   For(ExpAst*, ExpAst*, ExpAst*, StmtAst*);
 };
 
@@ -166,6 +176,7 @@ class OpBinary:public ExpAst{
   void print();
   OpBinary();
   void setArguments(ExpAst*, ExpAst*);
+  	string generate_code(const SymbolTable*);
   OpBinary(ExpAst*, ExpAst*, opNameB);
   OpBinary(opNameB);
 };
@@ -178,6 +189,7 @@ class OpUnary:public ExpAst{
   OpUnary();
   OpUnary(ExpAst*, OpUnary*);
   OpUnary(ExpAst*, opNameU);
+  	string generate_code(const SymbolTable*);
   OpUnary(opNameU);
 };
 
@@ -187,15 +199,17 @@ class Funcall:public ExpAst{
   void print();
   Funcall();
   Funcall(vector<ExpAst*>);
+  	string generate_code(const SymbolTable*);
   Funcall(ExpAst*);
 };
 
 class FloatConst:public ExpAst{
  public:
- float  child;
-  void print();
-  FloatConst();
-  FloatConst(float x);
+	float  child;
+	void print();
+	FloatConst();
+  	string generate_code(const SymbolTable*);
+	FloatConst(float x);
 };
 
 class IntConst:public ExpAst{
@@ -203,6 +217,7 @@ class IntConst:public ExpAst{
  int  child;
   void print();
   IntConst();
+  	string generate_code(const SymbolTable*);
   IntConst(int x);
 };
 
@@ -211,6 +226,7 @@ class StringConst:public ExpAst{
  public:
   void print();
   StringConst();
+  	string generate_code(const SymbolTable*);
   StringConst(string x);
 };
 
@@ -219,6 +235,7 @@ class Identifier:public ArrayRef{
  string  child;
   void print();
   Identifier();
+  	string generate_code(const SymbolTable*);
   Identifier(string x);
 };
 
@@ -229,6 +246,7 @@ class Index:public ArrayRef{
 	string identifier_name;
   void print();
   Index();
+  	string generate_code(const SymbolTable*);
   Index(ArrayRef* left, ExpAst* right);
   Index(string s);
 };
