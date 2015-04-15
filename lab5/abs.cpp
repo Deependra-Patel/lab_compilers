@@ -2,10 +2,12 @@
 #include "abs.h"
 #include <string>
 #include <sstream>
+#include <fstream>
 using namespace std;
 vector<string> regs = {"edx", "ecx", "ebx", "eax"};
 Code code;
 
+extern ofstream myfile;
 
 void gencode(string new_line) {
 	code.code_array.push_back(new_line);
@@ -22,6 +24,11 @@ string Code::str() {
 	}
 	return s;
 }
+
+void Code::clear() {
+	code_array.clear();
+}
+
 
 string int_to_str(int a) {
 	stringstream ss;
@@ -112,9 +119,23 @@ void Seq::print(){
 }
 
 void BlockStatement::generate_code(SymbolTable* st){
+	code.clear();
 	gencode("\nvoid "+st->funcName+"(){");
 	gencode("\t pushi(ebp); // Setting dynamic link");
 	gencode("\t move(esp,ebp); // Setting dynamic link");
+	for (int i = 0; i < children.size(); i++) children[i]->generate_code(st);
+	if (st->funcName == "main") {
+	  gencode("\t print_int(eax);");
+	  gencode("\t print_char('\\n');");
+	  gencode("\t print_int(ebx);");
+	  gencode("\t print_char('\\n');");
+	  gencode("\t print_int(ecx);");
+	  gencode("\t print_char('\\n');");
+	  gencode("\t print_int(edx);");
+	  gencode("\t print_char('\\n');");
+	}
+	gencode("}");
+	myfile << code.str() << endl;
 }
 BlockStatement::BlockStatement(){}
 BlockStatement::BlockStatement(StmtAst* c){
@@ -143,13 +164,13 @@ void Ass::generate_code(SymbolTable* st){
 		if (right->type->basetype == Int) {
 			gencode("\t pushi("+ regs.back() +");    // pushing temporary storage");
 			left1->generate_code_addr(st);
-			gencode("\t loadi(esp, "+ regs[0] +");    // loading temporary storage");
+			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
 			gencode("\t storei("+ regs[0] +", ind("+ regs.back() +"));");
 		}
 		else {
 			gencode("\t pushf("+ regs.back() +");    // pushing temporary storage");
 			left1->generate_code_addr(st);
-			gencode("\t loadi(esp, "+ regs[0] +");    // loading temporary storage");
+			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
 			gencode("\t storef("+ regs[0] +", ind("+ regs.back() +"));");
 		}
 	}
@@ -167,9 +188,6 @@ void Ass::generate_code(SymbolTable* st){
 		regs.push_back(right_reg);
 		swap();
 	}
-	cout << "printing " << endl;
-	cout << code.str() << endl;
-	//return "";
 }
 Ass::Ass(){
 	empty = true;
@@ -329,7 +347,7 @@ void OpBinary::generate_code(SymbolTable* st){
 		}
 		right->generate_code(st);
 		if (left->type->basetype == Int) {
-			gencode("\t loadi(esp, "+ regs[0] +");    // loading temporary storage");
+			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
 			if (opName == MULT_INT) gencode("\t muli("+ regs[0] +", "+ regs[1] +");");
 			if (opName == PLUS_INT) gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
 			if (opName == MINUS_INT) {
@@ -378,6 +396,64 @@ void OpBinary::generate_code(SymbolTable* st){
 		regs.push_back(left_reg);
 		swap();
 	}
+	// if (regs.size() == 2) {
+	// 	if (left->type->basetype == Int) {
+	// 		gencode("\t pushi("+ regs.back() +");    // pushing temporary storage");
+	// 	}
+	// 	else {
+	// 		gencode("\t pushf("+ regs.back() +");    // pushing temporary storage");
+	// 	}
+	// 	right->generate_code(st);
+	// 	if (left->type->basetype == Int) {
+	// 		gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
+	// 		if (opName == MULT_INT) gencode("\t muli("+ regs[0] +", "+ regs[1] +");");
+	// 		if (opName == PLUS_INT) gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
+	// 		if (opName == MINUS_INT) {
+	// 			gencode("\t muli(-1, "+ regs[1] +");");
+	// 			gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
+	// 		}
+	// 		if (opName == DIV_INT) gencode("\t divi("+ regs[0] +", "+ regs[1] +");");
+	// 		gencode("\t popi(1);");
+	// 	}
+	// 	else {
+	// 		gencode("\t loadf(esp, "+ regs[0] +");    // loading temporary storage");
+	// 		if (opName == MULT_FLOAT) gencode("\t mulf("+ regs[0] +", "+ regs[1] +");");
+	// 		if (opName == PLUS_FLOAT) gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
+	// 		if (opName == MINUS_FLOAT) {
+	// 			gencode("\t mulf(-1, "+ regs[1] +");");
+	// 			gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
+	// 		}
+	// 		if (opName == DIV_FLOAT) gencode("\t divf("+ regs[0] +", "+ regs[1] +");");
+	// 		gencode("\t popf(1);");
+	// 	}
+		
+	// }
+	// else {
+	// 	string left_reg = regs.back();
+	// 	regs.pop_back();
+	// 	right->generate_code(st);
+	// 	if (left->type->basetype == Int) {
+	// 		if (opName == MULT_INT) gencode("\t muli("+ left_reg+", "+ regs.back() +");");
+	// 		if (opName == PLUS_INT) gencode("\t addi("+ left_reg	+", "+ regs.back() +");");
+	// 		if (opName == MINUS_INT) {
+	// 			gencode("\t muli(-1, "+ regs.back() +");");
+	// 			gencode("\t addi("+ left_reg +", "+ regs.back() +");");
+	// 		}
+	// 		if (opName == DIV_INT) gencode("\t divi("+ left_reg +", "+ regs.back() +");");
+	// 	}
+	// 	else {
+	// 		if (opName == MULT_FLOAT) gencode("\t mulf("+ left_reg +", "+ regs.back() +");");
+	// 		if (opName == PLUS_FLOAT) gencode("\t addf("+ left_reg +", "+ regs.back() +");");
+	// 		if (opName == MINUS_FLOAT) {
+	// 			gencode("\t mulf(-1, "+ regs.back() +");");
+	// 			gencode("\t addf("+ left_reg +", "+ regs.back() +");");
+
+	// 		}
+	// 		if (opName == DIV_FLOAT) gencode("\t divf("+ left_reg +", "+ regs.back() +");");
+	// 	}
+	// 	regs.push_back(left_reg);
+	// 	swap();
+	// }
 }
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(opNameB e){
@@ -590,11 +666,11 @@ void Identifier::generate_code( SymbolTable* st){
 		Type * tp = st->getType(child);
 		int offset = st->getOffset(child);
 		string offset_str = int_to_str(offset);
-		if (tp->tag == Base && tp->basetype == Int) gencode("\t loadi(ind(ebp, "+ offset_str +"), "+ regs.back() +"));");
-		else if (tp->tag == Base && tp->basetype == Float) gencode("\t loadf(ind(ebp, "+ offset_str +"), "+ regs.back() +"));");
+		if (tp->tag == Base && tp->basetype == Int) gencode("\t loadi(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
+		else if (tp->tag == Base && tp->basetype == Float) gencode("\t loadf(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
 		else if (tp->tag == Pointer) {
 			gencode("\t move("+ offset_str +", "+ regs.back() +");");
-			gencode("\t addi(ebp,"+ regs.back() +"));");
+			gencode("\t addi(ebp,"+ regs.back() +");");
 		}
 	}
 }
@@ -606,7 +682,7 @@ void Identifier::generate_code_addr( SymbolTable* st){
 		int offset = st->getOffset(child);
 		string offset_str = int_to_str(offset);
 		gencode("\t move("+ offset_str +", "+ regs.back() +");");
-		gencode("\t addi(ebp,"+ regs.back() +"));");
+		gencode("\t addi(ebp,"+ regs.back() +");");
 	}
 }
 
@@ -624,7 +700,7 @@ void Index::generate_code(SymbolTable* st){
 	if (regs.size() == 2) {
 		gencode("\t pushi("+ regs.back() +");");
 		right->generate_code(st);
-		gencode("\t loadi(esp, "+ regs[0] +");");
+		gencode("\t loadi(ind(esp), "+ regs[0] +");");
 		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
 		gencode("\t addi("+ regs[0] +", "+ regs.back() +"); ");
 		if (type->tag == Base) {
@@ -662,7 +738,7 @@ void Index::generate_code_addr(SymbolTable* st){
 	if (regs.size() == 2) {
 		gencode("\t pushi("+ regs.back() +");");
 		right->generate_code(st);
-		gencode("\t loadi(esp, "+ regs[0] +");");
+		gencode("\t loadi(ind(esp), "+ regs[0] +");");
 		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
 		gencode("\t addi("+ regs[0] +", "+ regs.back() +"); ");
 		gencode("\t popi(1);");

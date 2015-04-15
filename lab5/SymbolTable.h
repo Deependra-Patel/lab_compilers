@@ -28,6 +28,7 @@ struct Type {
 	int size();
 	bool isNumeric();
 	void update(int);
+	void print_size(string);
 };
 
 struct SymbolTableEntry{
@@ -38,7 +39,7 @@ struct SymbolTableEntry{
 	SymbolTableEntry();
 	int size();
 	SymbolTableEntry(int addr, Type* idType);
-	SymbolTableEntry(int addr, Type* idType, string name);
+	SymbolTableEntry(int ,int addr, Type* idType, string name);
 	void Print();
 };
 

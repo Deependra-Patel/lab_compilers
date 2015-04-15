@@ -38,6 +38,7 @@ function_definition
 		cout << endl;
 		offset = 4;
 		paramMap.clear();
+		index = 0;
 	}
 	fun_declarator
 	{
@@ -108,6 +109,7 @@ parameter_declaration
 	: 	type_specifier declarator {
 		paramMap[$<SymbolTableEntry>2->name] = $<SymbolTableEntry>2;
 		offset += $<SymbolTableEntry>2->size();
+		index += 1;
 		if (retType->basetype == Void) {
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Parameter " << $<SymbolTableEntry>2->name <<" has type void."<< endl;
 		}
@@ -117,7 +119,7 @@ parameter_declaration
 declarator
 	: IDENTIFIER
 	{
-		$<SymbolTableEntry>$ = new SymbolTableEntry(offset, retType, $<String>1);
+		$<SymbolTableEntry>$ = new SymbolTableEntry(index, offset, retType, $<String>1);
 		if (st->checkScope($<String>1)){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Variable '"<< $<String>1<<"' already defined"<<endl;
 		}
@@ -130,13 +132,13 @@ declarator
 		if ($<expAst>3->type->basetype != Int){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Non integer Array index of variable."<< endl;
 		}
-		Type* cur = new Type();
-		cur->tag = Pointer;
-		cur->pointed = $<SymbolTableEntry>1->idType;
-		cur->sizeType = ((IntConst*)$<expAst>3)->child;
-		$<SymbolTableEntry>$ = $<SymbolTableEntry>1;
-		$<SymbolTableEntry>$->idType = cur;
-		/* $<SymbolTableEntry>$->idType->update(((IntConst*)$<expAst>3)->child); */
+		/* Type* cur = new Type(); */
+		/* cur->tag = Pointer; */
+		/* cur->pointed = $<SymbolTableEntry>1->idType; */
+		/* cur->sizeType = ((IntConst*)$<expAst>3)->child; */
+		/* $<SymbolTableEntry>$ = $<SymbolTableEntry>1; */
+		/* $<SymbolTableEntry>$->idType = cur; */
+		$<SymbolTableEntry>$->idType->update(((IntConst*)$<expAst>3)->child);
 	}
 	;
 
@@ -430,7 +432,6 @@ postfix_expression
 			else {
 				for (int i = 1; i < fc->children.size(); i++) {
 					Type * actualtype = calledst->getParaByInd(i-1);
-
 					IntConst *temp = new IntConst(11);
 					FloatConst* temp2 = new FloatConst(1.1);
 					if (typeid(*temp) == typeid(*fc->children[i]) || typeid(*temp2) == typeid(*fc->children[i])){
@@ -451,10 +452,7 @@ postfix_expression
 						}	
 						continue;					
 					}
-					fc->children[i]->print();
-					cout<<endl;
-					string paraname = ((Identifier *)fc->children[i])->child;
-					Type* paratype = st->getType(paraname);
+					Type* paratype = fc->children[i]->type;
 					if (!paratype->equal(actualtype)) {
 						if (paratype->tag == Base && actualtype->tag == Base) {
 							if (paratype->basetype == Int) {

@@ -1,3 +1,11 @@
-##SymbolTable::# Function Name: f#Return Type: Kind: 0#Basetype: 0#Size: 4##Printing parameters: #a => Offset: 4#Kind: 1#Basetype: 13996464#Size: 40#4####Printing local variables: #x => Offset: -4#Kind: 0#Basetype: 0#Size: 4###printing: (Block [(Return (IntConst 0))])
+##SymbolTable::# Function Name: f#Return Type: sizeprinting
+#Printing parameters: #a => Offset: 8#sizeprinting
+##x => Offset: 4#sizeprinting
+###Printing local variables: #printing: (Block [(Return (IntConst 0))])
 printing 
-##SymbolTable::# Function Name: main#Return Type: Kind: 0#Basetype: 0#Size: 4##Printing parameters: #a => Offset: 24#Kind: 1#Basetype: 13997648#Size: 40#4###b => Offset: 4#Kind: 1#Basetype: 13995376#Size: 20#4####Printing local variables: #x => Offset: -4#Kind: 0#Basetype: 0#Size: 4###y => Offset: -8#Kind: 0#Basetype: 0#Size: 4###printing: (Block [(Ass (Index (Identifier a) (IntConst 3)) (Index (Identifier a) (IntConst 1))) (Ass (Funcall (Identifier f) (Identifier a))) (Return (IntConst 3))])
+##SymbolTable::# Function Name: main#Return Type: sizeprinting
+#Printing parameters: #a => Offset: 72004#sizeprinting
+##b => Offset: 4#sizeprinting
+###Printing local variables: #x => Offset: -4#sizeprinting
+##y => Offset: -8#sizeprinting
+##printing: (Block [(Ass (Index (Identifier a) (IntConst 3)) (Index (Identifier a) (IntConst 1))) (Return (IntConst 3))])

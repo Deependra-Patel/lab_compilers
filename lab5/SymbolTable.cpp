@@ -38,6 +38,9 @@ Type::Type(Kind tag, Type* pointed){
 	this->pointed = pointed;
 }
 void Type::Print(){
+	cout << "sizeprinting" << endl;
+	print_size("");
+	return;
 	cout<<"Kind: "<<tag<<"#Basetype: "<<basetype<<"#Size: "<<size()<<"#";
 	if (tag == Pointer) cout << pointed->size() << "#";
 }
@@ -67,6 +70,14 @@ void Type::update(int s) {
 	else pointed->update(s);
 }
 
+void Type::print_size(string offset) {
+	if (tag == Base) cout << offset << basetype << endl;
+	else {
+		cout << offset << sizeType << endl;
+		pointed->print_size(offset+"  ");
+	}
+}
+
 SymbolTableEntry::SymbolTableEntry(){}
 SymbolTableEntry::SymbolTableEntry(int addr, Type* idType){
 	this->addr = addr;
@@ -77,10 +88,11 @@ void SymbolTable::setOffsets(){
 	    it->second->addr = -(it->second->addr + it->second->size());
 	}
 }
-SymbolTableEntry::SymbolTableEntry(int addr, Type* idType, string name){
+SymbolTableEntry::SymbolTableEntry(int ind, int addr, Type* idType, string name){
 	this->name = name;
 	this->addr = addr;
 	this->idType = idType;
+	index = ind;
 }
 int SymbolTableEntry::size(){
 	return idType->size();
@@ -124,7 +136,7 @@ bool SymbolTable::checkScope(string var){
 
 Type * SymbolTable::getParaByInd(int i) {
 	for (map<string, SymbolTableEntry*>::iterator it = parameters.begin(); it != parameters.end(); it++) {
-		if ((it->second)->addr == i) {
+		if ((it->second)->index == i) {
 			return (it->second)->idType;
 		}
 	}
