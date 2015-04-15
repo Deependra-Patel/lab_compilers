@@ -130,13 +130,13 @@ declarator
 		if ($<expAst>3->type->basetype != Int){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Non integer Array index of variable."<< endl;
 		}
-		/* Type* cur = new Type(); */
-		/* cur->tag = Pointer;                                                                    */
-		/* cur->pointed = $<SymbolTableEntry>1->idType; */
-		/* cur->sizeType = ((IntConst*)$<expAst>3)->child; */
-		/* $<SymbolTableEntry>$ = $<SymbolTableEntry>1; */
-		/* $<SymbolTableEntry>$->idType = cur; */
-		$<SymbolTableEntry>$->idType->update(((IntConst*)$<expAst>3)->child);
+		Type* cur = new Type();
+		cur->tag = Pointer;
+		cur->pointed = $<SymbolTableEntry>1->idType;
+		cur->sizeType = ((IntConst*)$<expAst>3)->child;
+		$<SymbolTableEntry>$ = $<SymbolTableEntry>1;
+		$<SymbolTableEntry>$->idType = cur;
+		/* $<SymbolTableEntry>$->idType->update(((IntConst*)$<expAst>3)->child); */
 	}
 	;
 
@@ -226,6 +226,8 @@ assignment_statement
 		if ($<stmtAst>$->type->tag == Error){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Assignment of Incompatible types."<<endl;			
 		}
+		cout << "reached here" << endl;
+		$<stmtAst>$->generate_code(st);
 	}
     | expression ';'
     {
@@ -238,7 +240,6 @@ expression
 	: logical_and_expression
 	{
 		$<expAst>$ = $<expAst>1;
-		$<expAst>$->generate_code(st);
 	}
 	| expression OR_OP logical_and_expression
 	{
