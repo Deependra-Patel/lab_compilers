@@ -1,11 +1,27 @@
 ##SymbolTable::# Function Name: f#Return Type: sizeprinting
-#Printing parameters: #a => Offset: 8#sizeprinting
-##x => Offset: 4#sizeprinting
-###Printing local variables: #printing: (Block [(Return (IntConst 0))])
-printing 
+#Printing parameters: ##Printing local variables: #printing: (Block [(Return (IntConst 0))])
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
 ##SymbolTable::# Function Name: main#Return Type: sizeprinting
-#Printing parameters: #a => Offset: 72004#sizeprinting
-##b => Offset: 4#sizeprinting
-###Printing local variables: #x => Offset: -4#sizeprinting
-##y => Offset: -8#sizeprinting
-##printing: (Block [(Ass (Index (Identifier a) (IntConst 3)) (Index (Identifier a) (IntConst 1))) (Return (IntConst 3))])
+#Printing parameters: ##Printing local variables: #a => Offset: -40#sizeprinting
+##b => Offset: -44#sizeprinting
+##x => Offset: -48#sizeprinting
+##y => Offset: -52#sizeprinting
+##printing: (Block [(If (OR (EQ_OP_INT (Identifier b) (Identifier x)) (EQ_OP_INT (Identifier x) (Identifier y))) (Ass (Identifier x) (PLUS_INT (Identifier x) (IntConst 3))) (Ass (Identifier x) (PLUS_INT (Identifier x) (IntConst 7))))])sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting
+sizeprinting

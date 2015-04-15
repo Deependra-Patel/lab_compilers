@@ -3,9 +3,10 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 using namespace std;
 vector<string> regs = {"edx", "ecx", "ebx", "eax"};
-Code code;
+extern Code code;
 
 extern ofstream myfile;
 
@@ -50,6 +51,55 @@ void swap() {
 	regs.push_back(reg1);
 	regs.push_back(reg2);
 	return;
+}
+
+
+string nextInstr(){
+	return ("l"+int_to_str(code.size()));
+}
+int nextInt(){
+	return code.size();
+}
+
+vector<int> merge(vector<int> vec1, vector<int> vec2){
+	vector<int> merged;
+	vec1.insert(vec1.end(), vec2.begin(), vec2.end());
+	sort(vec1.begin(), vec1.end());
+	merged.push_back(vec1[0]);
+	for (int i=1; i<vec1.size(); i++){
+		if(vec1[i] != vec1[i-1])
+			merged.push_back(vec1[i]);
+	}
+	cout << "merging " << vec1.size() << " " << vec2.size() << " " << merged.size() << endl;
+	return merged;
+}
+
+void replaceAll( string &s, const string &search, const string &replace ) {
+    for( size_t pos = 0; ; pos += replace.length() ) {
+        // Locate the substring to replace
+        pos = s.find( search, pos );
+        if( pos == string::npos ) break;
+        // Replace by erasing and inserting
+        s.erase( pos, search.length() );
+        s.insert( pos, replace );
+    }
+}
+
+void backpatch(vector<int> vec, string jl){
+	for(int i=0; i<vec.size(); i++){
+		replaceAll(code.code_array[vec[i]], "_", jl);
+	}
+}
+
+vector<int> makeList(int x){
+	vector<int> l;
+	l.push_back(x);
+	return l;
+}
+
+void printCode(){
+	cout<<"CODE::"<<endl;
+	cout<<code.str()<<endl;
 }
 
 
@@ -119,23 +169,7 @@ void Seq::print(){
 }
 
 void BlockStatement::generate_code(SymbolTable* st){
-	code.clear();
-	gencode("\nvoid "+st->funcName+"(){");
-	gencode("\t pushi(ebp); // Setting dynamic link");
-	gencode("\t move(esp,ebp); // Setting dynamic link");
 	for (int i = 0; i < children.size(); i++) children[i]->generate_code(st);
-	if (st->funcName == "main") {
-	  gencode("\t print_int(eax);");
-	  gencode("\t print_char('\\n');");
-	  gencode("\t print_int(ebx);");
-	  gencode("\t print_char('\\n');");
-	  gencode("\t print_int(ecx);");
-	  gencode("\t print_char('\\n');");
-	  gencode("\t print_int(edx);");
-	  gencode("\t print_char('\\n');");
-	}
-	gencode("}");
-	myfile << code.str() << endl;
 }
 BlockStatement::BlockStatement(){}
 BlockStatement::BlockStatement(StmtAst* c){
@@ -272,7 +306,28 @@ void Return::print() {
 
 // for If
 void If::generate_code(SymbolTable* st){
+	first->generate_code(st);
+	string sec = nextInstr();
+	gencode(sec +":");
+	cout << "truelist : ";
+	for (int i = 0; i < first->TrueList.size(); i++) cout << first->TrueList[i] << " ";
+	cout << " -> " << sec << endl;
+	backpatch(first->TrueList, sec);
+	second->generate_code(st);
+	gencode("\t j(_);");
+	vector<int> temp;
+	temp.push_back(code.size()-1);
+	
+	string els = nextInstr();
+	gencode(els+":");
+	backpatch(first->FalseList, els);
+	third->generate_code(st);
+	string out = nextInstr();
+	gencode(out+":");
+
+	backpatch(temp, out);
 }
+
 If::If() {
 	
 }
@@ -293,6 +348,18 @@ void If::print() {
 }
 // for While
 void While::generate_code(SymbolTable* st){
+	string start = nextInstr();
+	gencode(start+":");
+	
+	left->generate_code(st);
+	string stmt_instr = nextInstr();
+	gencode(stmt_instr+":");
+	right->generate_code(st);
+	gencode("\t j("+start+");");
+	string end = nextInstr();
+	backpatch(left->FalseList, end);
+	backpatch(left->TrueList, stmt_instr);
+	gencode(end+":");	
 }
 While::While() {
 	
@@ -312,7 +379,21 @@ void While::print() {
 
 // for For
 void For::generate_code(SymbolTable* st){
-	//return "";
+	first->generate_code(st);
+	string cond = nextInstr();
+	gencode(cond+":");
+	second->generate_code(st);
+	string child_instr = nextInstr();
+	gencode(child_instr+":");
+	child->generate_code(st);
+	third->generate_code(st);
+	gencode("\t j("+cond+");");
+	
+	string end = nextInstr();
+	backpatch(second->FalseList, end);
+	backpatch(second->TrueList, child_instr);
+	gencode(end+":");
+
 }
 For::For() {
 	
@@ -338,122 +419,78 @@ void For::print() {
 
 void OpBinary::generate_code(SymbolTable* st){
 	left->generate_code(st);
-	if (regs.size() == 2) {
-		if (left->type->basetype == Int) {
-			gencode("\t pushi("+ regs.back() +");    // pushing temporary storage");
-		}
-		else {
-			gencode("\t pushf("+ regs.back() +");    // pushing temporary storage");
-		}
-		right->generate_code(st);
-		if (left->type->basetype == Int) {
-			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
-			if (opName == MULT_INT) gencode("\t muli("+ regs[0] +", "+ regs[1] +");");
-			if (opName == PLUS_INT) gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
-			if (opName == MINUS_INT) {
-				gencode("\t muli(-1, "+ regs[1] +");");
-				gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
-			}
-			if (opName == DIV_INT) gencode("\t divi("+ regs[0] +", "+ regs[1] +");");
-			gencode("\t popi(1);");
-		}
-		else {
-			gencode("\t loadf(esp, "+ regs[0] +");    // loading temporary storage");
-			if (opName == MULT_FLOAT) gencode("\t mulf("+ regs[0] +", "+ regs[1] +");");
-			if (opName == PLUS_FLOAT) gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
-			if (opName == MINUS_FLOAT) {
-				gencode("\t mulf(-1, "+ regs[1] +");");
-				gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
-			}
-			if (opName == DIV_FLOAT) gencode("\t divf("+ regs[0] +", "+ regs[1] +");");
-			gencode("\t popf(1);");
-		}
-		
+	string left_reg, right_reg;
+	string type = "";
+	int regs_size = regs.size();
+	if (left->type->basetype == Int)
+		type = "i";
+	else if (left->type->basetype == Int)
+		type = "f";
+	
+	if (regs_size == 2) {
+		gencode("\t push"+type+"("+ regs.back() +");    // pushing temporary storage");		
 	}
 	else {
-		string left_reg = regs.back();
+		left_reg = regs.back();
 		regs.pop_back();
+	}
+
+	if (opName == AND) {
+		string sec = nextInstr();
+		gencode(sec+":");
 		right->generate_code(st);
-		if (left->type->basetype == Int) {
-			if (opName == MULT_INT) gencode("\t muli("+ left_reg+", "+ regs.back() +");");
-			if (opName == PLUS_INT) gencode("\t addi("+ left_reg	+", "+ regs.back() +");");
-			if (opName == MINUS_INT) {
-				gencode("\t muli(-1, "+ regs.back() +");");
-				gencode("\t addi("+ left_reg +", "+ regs.back() +");");
-			}
-			if (opName == DIV_INT) gencode("\t divi("+ left_reg +", "+ regs.back() +");");
+		FalseList = merge(left->FalseList, right->FalseList);
+		backpatch(left->TrueList, sec);
+	}
+	else if(opName == OR){
+		string sec = nextInstr();
+		gencode(sec+":");
+		right->generate_code(st);
+		TrueList = merge(left->TrueList, right->TrueList);
+		FalseList = right->FalseList;
+		backpatch(left->FalseList, sec);	
+	}
+	else if (type == "i" || type == "f"){
+		right->generate_code(st);
+		if(regs_size == 2){
+			gencode("\t load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
+			gencode("\t pop"+type+"(1);");
+			left_reg = regs[0];
+			right_reg = regs[1];
 		}
 		else {
-			if (opName == MULT_FLOAT) gencode("\t mulf("+ left_reg +", "+ regs.back() +");");
-			if (opName == PLUS_FLOAT) gencode("\t addf("+ left_reg +", "+ regs.back() +");");
-			if (opName == MINUS_FLOAT) {
-				gencode("\t mulf(-1, "+ regs.back() +");");
-				gencode("\t addf("+ left_reg +", "+ regs.back() +");");
-
-			}
-			if (opName == DIV_FLOAT) gencode("\t divf("+ left_reg +", "+ regs.back() +");");
+			right_reg = regs.back();
 		}
-		regs.push_back(left_reg);
-		swap();
-	}
-	// if (regs.size() == 2) {
-	// 	if (left->type->basetype == Int) {
-	// 		gencode("\t pushi("+ regs.back() +");    // pushing temporary storage");
-	// 	}
-	// 	else {
-	// 		gencode("\t pushf("+ regs.back() +");    // pushing temporary storage");
-	// 	}
-	// 	right->generate_code(st);
-	// 	if (left->type->basetype == Int) {
-	// 		gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
-	// 		if (opName == MULT_INT) gencode("\t muli("+ regs[0] +", "+ regs[1] +");");
-	// 		if (opName == PLUS_INT) gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
-	// 		if (opName == MINUS_INT) {
-	// 			gencode("\t muli(-1, "+ regs[1] +");");
-	// 			gencode("\t addi("+ regs[0] +", "+ regs[1] +");");
-	// 		}
-	// 		if (opName == DIV_INT) gencode("\t divi("+ regs[0] +", "+ regs[1] +");");
-	// 		gencode("\t popi(1);");
-	// 	}
-	// 	else {
-	// 		gencode("\t loadf(esp, "+ regs[0] +");    // loading temporary storage");
-	// 		if (opName == MULT_FLOAT) gencode("\t mulf("+ regs[0] +", "+ regs[1] +");");
-	// 		if (opName == PLUS_FLOAT) gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
-	// 		if (opName == MINUS_FLOAT) {
-	// 			gencode("\t mulf(-1, "+ regs[1] +");");
-	// 			gencode("\t addf("+ regs[0] +", "+ regs[1] +");");
-	// 		}
-	// 		if (opName == DIV_FLOAT) gencode("\t divf("+ regs[0] +", "+ regs[1] +");");
-	// 		gencode("\t popf(1);");
-	// 	}
+		if (opName == MULT_INT || opName == MULT_FLOAT) gencode("\t mul"+type+"("+ left_reg  +", "+ right_reg +");");
+		else if (opName == PLUS_INT || opName == PLUS_FLOAT) gencode("\t add"+type+"("+ left_reg +", "+ right_reg +");");
+		else if (opName == MINUS_INT || opName == MINUS_FLOAT) {
+			gencode("\t mul"+type+"(-1, "+ right_reg +");");
+			gencode("\t add"+type+"("+ left_reg +", "+ right_reg +");");
+		}
+		else if (opName == DIV_INT || opName == DIV_FLOAT) gencode("\t div"+type+"("+ left_reg +", "+ right_reg +");");
+		else if (opName == ASSIGN) {
+			Ass * tempass = new Ass(left, right);
+			tempass->generate_code(st);
+		}
+		else {
+			//from here comp commands
+			gencode("\t cmp"+type+"("+ left_reg +", "+ right_reg +");");
+			TrueList.push_back(nextInt());
+			FalseList.push_back(nextInt()+1);
+			if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("\t je(_);");
+			if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("\t jne(_);");
+			if (opName == LT_INT || opName == LT_FLOAT) gencode("\t jl(_);");
+			if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("\t jle(_);");
+			if (opName == GT_INT || opName == GT_FLOAT) gencode("\t jg(_);");
+			if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("\t jge(_);");
+			gencode("\t j(_);");
+		}
 		
-	// }
-	// else {
-	// 	string left_reg = regs.back();
-	// 	regs.pop_back();
-	// 	right->generate_code(st);
-	// 	if (left->type->basetype == Int) {
-	// 		if (opName == MULT_INT) gencode("\t muli("+ left_reg+", "+ regs.back() +");");
-	// 		if (opName == PLUS_INT) gencode("\t addi("+ left_reg	+", "+ regs.back() +");");
-	// 		if (opName == MINUS_INT) {
-	// 			gencode("\t muli(-1, "+ regs.back() +");");
-	// 			gencode("\t addi("+ left_reg +", "+ regs.back() +");");
-	// 		}
-	// 		if (opName == DIV_INT) gencode("\t divi("+ left_reg +", "+ regs.back() +");");
-	// 	}
-	// 	else {
-	// 		if (opName == MULT_FLOAT) gencode("\t mulf("+ left_reg +", "+ regs.back() +");");
-	// 		if (opName == PLUS_FLOAT) gencode("\t addf("+ left_reg +", "+ regs.back() +");");
-	// 		if (opName == MINUS_FLOAT) {
-	// 			gencode("\t mulf(-1, "+ regs.back() +");");
-	// 			gencode("\t addf("+ left_reg +", "+ regs.back() +");");
-
-	// 		}
-	// 		if (opName == DIV_FLOAT) gencode("\t divf("+ left_reg +", "+ regs.back() +");");
-	// 	}
-	// 	regs.push_back(left_reg);
-	// 	swap();
-	// }
+		if(regs_size > 2){
+			regs.push_back(left_reg);
+			swap();			
+		}
+	}
 }
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(opNameB e){
@@ -490,9 +527,10 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 		right = y;
 		if (x->type->basetype == Int)
 			opName = (opNameB)((int)o+1);
+			
 		if (x->type->basetype == Float)
 			opName = (opNameB)((int)o+2);
-		if (o == ASSIGN) opName = o;
+		if (o == ASSIGN || o == OR || o == AND) opName = o;
 		type = x->type->copy();
 		if (o == LT || o == GT || o == LE_OP || o == GE_OP || o == NE_OP || o == EQ_OP || o == OR || o == AND){
 			if (x->type->isNumeric() && y->type->isNumeric()){

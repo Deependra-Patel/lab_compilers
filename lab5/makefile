@@ -21,7 +21,7 @@ lex.cc: lex.l Scanner.ih
 parse.cc: parse.y Parser.ih Parser.h Parserbase.h
 	bisonc++  parse.y;
 	sed -i 's/#include <iomanip>/#include <iomanip> \n #include "abs.h" \n/g' Parserbase.h 
-	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <map>\n#include <fstream> \n SymbolTableEntry* ste; SymbolTable* st; map<string, SymbolTableEntry*> paramMap; Type* retType;\nGlobalTable *gt = new GlobalTable();\n int counter_global = 0;\nint offset = 0;\nint index = 0;\n std::ofstream myfile("code.asm"); \n /g' parse.cc
+	sed -i 's/#include <iomanip>/#include <iomanip>\n#include <map>\n#include <fstream> \n SymbolTableEntry* ste; SymbolTable* st; map<string, SymbolTableEntry*> paramMap; Type* retType;\nGlobalTable *gt = new GlobalTable();\n Code code;\n int counter_global = 0;\nint offset = 0;\nint index = 0;\n std::ofstream myfile("code.asm"); \n /g' parse.cc
 
 #	bisonc++   --construction -V parse.y; 
 #	sed -i '/ifndef/a #include "tree_util.hh"' Parserbase.h;
@@ -57,6 +57,6 @@ plot:
 	dot -Tps graph.gv -o graph.ps
 	gnome-open graph.ps
 
-lab5: machine.cc code.asm
-	g++ -g3 -O0 machine.cc
+l5: machine.cc code.asm
+	g++  machine.cc -m32
 	./a.out

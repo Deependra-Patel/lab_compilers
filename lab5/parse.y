@@ -46,6 +46,10 @@ function_definition
 		st->parameters = paramMap;
 		paramMap.clear();
 		offset = 0;
+		code.clear();
+		gencode("\nvoid "+st->funcName+"(){");
+		gencode("\t pushi(ebp); // Setting dynamic link");
+		gencode("\t move(esp,ebp); // Setting dynamic link");
 	}
 	compound_statement
 	{
@@ -56,8 +60,20 @@ function_definition
 		cout << "printing: ";
 		$<stmtAst>$->print();
 		$<stmtAst>$->generate_code(st);
-		cout << endl;
-		st = new SymbolTable();		
+		cout << endl;	
+		if (st->funcName == "main") {
+			gencode("\t print_int(eax);");
+			gencode("\t print_char('\\n');");
+			gencode("\t print_int(ebx);");
+			gencode("\t print_char('\\n');");
+			gencode("\t print_int(ecx);");
+			gencode("\t print_char('\\n');");
+			gencode("\t print_int(edx);");
+			gencode("\t print_char('\\n');");
+		}
+		gencode("}");
+		myfile << code.str() << endl;	
+		st = new SymbolTable();
 	}
 	;
 

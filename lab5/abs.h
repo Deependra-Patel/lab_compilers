@@ -13,6 +13,8 @@ struct Code {
 	void clear();
 };
 
+void gencode(string);
+
 enum opNameB{OR=1,
 			 AND=2,
 			 EQ_OP=3,
@@ -99,6 +101,7 @@ class ExpAst:public abstract_astnode{
  public:	
 	void generate_code(SymbolTable*) = 0;
 	void print () = 0;
+	vector<int> FalseList, TrueList;
 };
 class ArrayRef: public ExpAst{
  public:
