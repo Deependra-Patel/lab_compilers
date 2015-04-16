@@ -29,6 +29,7 @@ struct Type {
 	bool isNumeric();
 	void update(int);
 	void print_size(string);
+	Basetype getBasetype();
 };
 
 struct SymbolTableEntry{
@@ -48,6 +49,7 @@ struct SymbolTable{
 	map<string, SymbolTableEntry*> localVariables;
 	string funcName;
 	Type * retType;
+	int returnAddr;
 
 	Type* getType(string);
 	SymbolTable(Type* retType, map<string, SymbolTableEntry*> parameters);
@@ -58,6 +60,7 @@ struct SymbolTable{
 	Type * getParaByInd(int);
 	void setOffsets();
 	int getOffset(string);
+	int getReturnAddr();
 };
 
 struct GlobalTable{

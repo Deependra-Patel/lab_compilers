@@ -78,6 +78,12 @@ void Type::print_size(string offset) {
 	}
 }
 
+Basetype Type::getBasetype() {
+	if (tag == Base) return basetype;
+	else if (tag == Pointer) return pointed->getBasetype();
+	return Void;
+}
+
 SymbolTableEntry::SymbolTableEntry(){}
 SymbolTableEntry::SymbolTableEntry(int addr, Type* idType){
 	this->addr = addr;
@@ -102,10 +108,13 @@ void SymbolTableEntry::Print(){
 	idType->Print();
 	cout<<"#";
 }
-SymbolTable::SymbolTable(){}
+SymbolTable::SymbolTable(){
+	returnAddr = -1;
+}
 SymbolTable::SymbolTable(Type* retType, map<string, SymbolTableEntry*> parameters){
 	this->retType = retType;
 	this->parameters = parameters;
+	returnAddr = -1;
 }
 
 void SymbolTable::addLocalVariable(string identifier, int addr, Type* idType){
@@ -160,6 +169,16 @@ void SymbolTable::Print(){
 	printMap(localVariables);
 }
 
+int SymbolTable::getReturnAddr() {
+	cout << "getting"<< endl;
+	if (returnAddr != -1) return returnAddr;
+	returnAddr = 4;
+	for (map<string, SymbolTableEntry *>::iterator it = parameters.begin(); it != parameters.end(); it++) {
+		if (returnAddr < it->second->addr+4) returnAddr = it->second->addr+4;
+	}
+	return returnAddr;
+}
+
 void GlobalTable::insert(SymbolTable* st){
 	funcSymbolTable[st->funcName] = st;
 }
@@ -167,3 +186,4 @@ void GlobalTable::insert(SymbolTable* st){
 Type* GlobalTable::getRetType(string str){
 	return funcSymbolTable[str]->retType;
 }
+

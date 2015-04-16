@@ -48,11 +48,15 @@ function_definition
 		offset = 0;
 		code.clear();
 		gencode("\nvoid "+st->funcName+"(){");
-		gencode("\t pushi(ebp); // Setting dynamic link");
-		gencode("\t move(esp,ebp); // Setting dynamic link");
+		gencode("    pushi(ebp); // Setting dynamic link");
+		gencode("    move(esp,ebp); // Setting dynamic link");
+		gt->insert(st);
 	}
 	compound_statement
 	{
+		cout << "compound done" << endl;
+		insert_locals(st);
+		save_regs();
 		st->localVariables = paramMap;
 		$<stmtAst>$ = $<stmtAst>5;
 		st->Print();
@@ -61,16 +65,22 @@ function_definition
 		$<stmtAst>$->print();
 		$<stmtAst>$->generate_code(st);
 		cout << endl;	
-		if (st->funcName == "main") {
-			gencode("\t print_int(eax);");
-			gencode("\t print_char('\\n');");
-			gencode("\t print_int(ebx);");
-			gencode("\t print_char('\\n');");
-			gencode("\t print_int(ecx);");
-			gencode("\t print_char('\\n');");
-			gencode("\t print_int(edx);");
-			gencode("\t print_char('\\n');");
-		}
+		gencode("ret"+st->funcName+":");
+		/* if (st->funcName == "main") { */
+		/* 	gencode("    print_int(eax);"); */
+		/* 	gencode("    print_char('\\n');"); */
+		/* 	gencode("    print_int(ebx);"); */
+		/* 	gencode("    print_char('\\n');"); */
+		/* 	gencode("    print_int(ecx);"); */
+		/* 	gencode("    print_char('\\n');"); */
+		/* 	gencode("    print_int(edx);"); */
+		/* 	gencode("    print_char('\\n');"); */
+		/* } */
+		load_regs();
+		remove_locals(st);
+		gencode("    loadi(ind(ebp), ebp);");
+		gencode("    popi(1);");
+		gencode("    return;");
 		gencode("}");
 		myfile << code.str() << endl;	
 		st = new SymbolTable();
@@ -188,8 +198,6 @@ compound_statement
 	statement_list '}'
 	{
 		$<stmtAst>$ = $<stmtAst>4;
-		$<stmtAst>$->print();
-		cout << endl;
  	}
 	;
 
@@ -244,8 +252,6 @@ assignment_statement
 		if ($<stmtAst>$->type->tag == Error){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Assignment of Incompatible types."<<endl;			
 		}
-		cout << "reached here" << endl;
-		$<stmtAst>$->generate_code(st);
 	}
     | expression ';'
     {
@@ -586,6 +592,8 @@ selection_statement
 	: IF '(' expression ')' statement ELSE statement
 	{
 	  $<stmtAst>$ = new If($<expAst>3, $<stmtAst>5, $<stmtAst>7);
+		$<stmtAst>$->print();
+		cout << endl;
  	} 
 	;
 

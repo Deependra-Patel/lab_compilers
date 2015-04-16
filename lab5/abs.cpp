@@ -6,13 +6,60 @@
 #include <algorithm>
 using namespace std;
 vector<string> regs = {"edx", "ecx", "ebx", "eax"};
+vector<string> all_regs = {"edx", "ecx", "ebx", "eax"};
 extern Code code;
 
 extern ofstream myfile;
 
+
+string int_to_str(int a) {
+	stringstream ss;
+	ss << a;
+	return ss.str();
+}
+
+string float_to_str(double a) {
+	stringstream ss;
+	ss << a;
+	return ss.str();
+}
+
+void save_regs() {
+	for (int i = 0; i < 4; i++) {
+		gencode("    pushi("+ all_regs[i] +");");
+	}
+}
+
+void load_regs() {
+	for (int i = 3; i >= 0; i--) {
+		gencode("    loadi(ind(esp), "+ all_regs[i] +");");
+		gencode("    popi(1);");
+	}
+}
+
 void gencode(string new_line) {
 	code.code_array.push_back(new_line);
 }
+
+void insert_locals(SymbolTable * st) {
+	int tot_size = 0;
+	for (map<string, SymbolTableEntry *> :: iterator it = st->localVariables.begin(); it != st->localVariables.end(); it++) {
+		cout << "inserting " << it->first << endl;
+		tot_size += it->second->idType->size();
+	}
+	gencode("    addi("+ int_to_str(0-tot_size) +", esp);");
+}
+
+
+void remove_locals(SymbolTable * st) {
+	int tot_size = 0;
+	for (map<string, SymbolTableEntry *> :: iterator it = st->localVariables.begin(); it != st->localVariables.end(); it++) {
+		cout << "inserting " << it->first << endl;
+		tot_size += it->second->idType->size();
+	}
+	gencode("    popi("+int_to_str(tot_size/4)+");");
+}
+
 
 int Code::size() {
 	return code_array.size();
@@ -30,18 +77,6 @@ void Code::clear() {
 	code_array.clear();
 }
 
-
-string int_to_str(int a) {
-	stringstream ss;
-	ss << a;
-	return ss.str();
-}
-
-string float_to_str(double a) {
-	stringstream ss;
-	ss << a;
-	return ss.str();
-}
 
 void swap() {
 	string reg1 = regs.back();
@@ -194,18 +229,19 @@ void Ass::generate_code(SymbolTable* st){
 	right->generate_code(st);
 	if (left == NULL) return;
 	ArrayRef* left1 = (ArrayRef *)left;
+	cout << "generating : " << st->funcName << endl;
 	if (regs.size() == 2) {
 		if (right->type->basetype == Int) {
-			gencode("\t pushi("+ regs.back() +");    // pushing temporary storage");
+			gencode("    pushi("+ regs.back() +");    // pushing temporary storage");
 			left1->generate_code_addr(st);
-			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
-			gencode("\t storei("+ regs[0] +", ind("+ regs.back() +"));");
+			gencode("    loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
+			gencode("    storei("+ regs[0] +", ind("+ regs.back() +"));");
 		}
 		else {
-			gencode("\t pushf("+ regs.back() +");    // pushing temporary storage");
+			gencode("    pushf("+ regs.back() +");    // pushing temporary storage");
 			left1->generate_code_addr(st);
-			gencode("\t loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
-			gencode("\t storef("+ regs[0] +", ind("+ regs.back() +"));");
+			gencode("    loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
+			gencode("    storef("+ regs[0] +", ind("+ regs.back() +"));");
 		}
 	}
 	else {
@@ -213,11 +249,11 @@ void Ass::generate_code(SymbolTable* st){
 		regs.pop_back();
 		if (right->type->basetype == Int) {
 			left1->generate_code_addr(st);
-			gencode("\t storei("+ right_reg +", ind("+ regs.back() +"));");
+			gencode("    storei("+ right_reg +", ind("+ regs.back() +"));");
 		}
 		else {
 			left1->generate_code_addr(st);
-			gencode("\t storef("+ right_reg +", ind("+ regs.back() +"));");
+			gencode("    storef("+ right_reg +", ind("+ regs.back() +"));");
 		}
 		regs.push_back(right_reg);
 		swap();
@@ -274,6 +310,14 @@ void Ass::print(){
 
 // for Return
 void Return::generate_code(SymbolTable* st){
+	child->generate_code(st);
+	if (st->retType->tag == Base && st->retType->basetype == Int) {
+		gencode("    storei("+ regs.back() +", ind(ebp, "+ int_to_str(st->getReturnAddr()) +"));");
+	}
+	if (st->retType->tag == Base && st->retType->basetype == Float) {
+		gencode("    storef("+ regs.back() +", ind(ebp, "+ int_to_str(st->getReturnAddr()) +"));");
+	}
+	gencode("    j(ret"+st->funcName+");");
 }
 Return::Return() {
 	 
@@ -314,7 +358,7 @@ void If::generate_code(SymbolTable* st){
 	cout << " -> " << sec << endl;
 	backpatch(first->TrueList, sec);
 	second->generate_code(st);
-	gencode("\t j(_);");
+	gencode("    j(_);");
 	vector<int> temp;
 	temp.push_back(code.size()-1);
 	
@@ -342,6 +386,7 @@ void If::print() {
 	first->print();
 	cout << " ";
 	second->print();
+	cout << "gugn" << endl;
 	cout << " ";
 	third->print();
 	cout << ")";
@@ -355,7 +400,7 @@ void While::generate_code(SymbolTable* st){
 	string stmt_instr = nextInstr();
 	gencode(stmt_instr+":");
 	right->generate_code(st);
-	gencode("\t j("+start+");");
+	gencode("    j("+start+");");
 	string end = nextInstr();
 	backpatch(left->FalseList, end);
 	backpatch(left->TrueList, stmt_instr);
@@ -387,7 +432,7 @@ void For::generate_code(SymbolTable* st){
 	gencode(child_instr+":");
 	child->generate_code(st);
 	third->generate_code(st);
-	gencode("\t j("+cond+");");
+	gencode("    j("+cond+");");
 	
 	string end = nextInstr();
 	backpatch(second->FalseList, end);
@@ -428,7 +473,7 @@ void OpBinary::generate_code(SymbolTable* st){
 		type = "f";
 	
 	if (regs_size == 2) {
-		gencode("\t push"+type+"("+ regs.back() +");    // pushing temporary storage");		
+		gencode("    push"+type+"("+ regs.back() +");    // pushing temporary storage");		
 	}
 	else {
 		left_reg = regs.back();
@@ -453,37 +498,37 @@ void OpBinary::generate_code(SymbolTable* st){
 	else if (type == "i" || type == "f"){
 		right->generate_code(st);
 		if(regs_size == 2){
-			gencode("\t load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
-			gencode("\t pop"+type+"(1);");
+			gencode("    load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
+			gencode("    pop"+type+"(1);");
 			left_reg = regs[0];
 			right_reg = regs[1];
 		}
 		else {
 			right_reg = regs.back();
 		}
-		if (opName == MULT_INT || opName == MULT_FLOAT) gencode("\t mul"+type+"("+ left_reg  +", "+ right_reg +");");
-		else if (opName == PLUS_INT || opName == PLUS_FLOAT) gencode("\t add"+type+"("+ left_reg +", "+ right_reg +");");
+		if (opName == MULT_INT || opName == MULT_FLOAT) gencode("    mul"+type+"("+ left_reg  +", "+ right_reg +");");
+		else if (opName == PLUS_INT || opName == PLUS_FLOAT) gencode("    add"+type+"("+ left_reg +", "+ right_reg +");");
 		else if (opName == MINUS_INT || opName == MINUS_FLOAT) {
-			gencode("\t mul"+type+"(-1, "+ right_reg +");");
-			gencode("\t add"+type+"("+ left_reg +", "+ right_reg +");");
+			gencode("    mul"+type+"(-1, "+ right_reg +");");
+			gencode("    add"+type+"("+ left_reg +", "+ right_reg +");");
 		}
-		else if (opName == DIV_INT || opName == DIV_FLOAT) gencode("\t div"+type+"("+ left_reg +", "+ right_reg +");");
+		else if (opName == DIV_INT || opName == DIV_FLOAT) gencode("    div"+type+"("+ left_reg +", "+ right_reg +");");
 		else if (opName == ASSIGN) {
 			Ass * tempass = new Ass(left, right);
 			tempass->generate_code(st);
 		}
 		else {
 			//from here comp commands
-			gencode("\t cmp"+type+"("+ left_reg +", "+ right_reg +");");
+			gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
 			TrueList.push_back(nextInt());
 			FalseList.push_back(nextInt()+1);
-			if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("\t je(_);");
-			if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("\t jne(_);");
-			if (opName == LT_INT || opName == LT_FLOAT) gencode("\t jl(_);");
-			if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("\t jle(_);");
-			if (opName == GT_INT || opName == GT_FLOAT) gencode("\t jg(_);");
-			if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("\t jge(_);");
-			gencode("\t j(_);");
+			if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    je(_);");
+			if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    jne(_);");
+			if (opName == LT_INT || opName == LT_FLOAT) gencode("    jl(_);");
+			if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jle(_);");
+			if (opName == GT_INT || opName == GT_FLOAT) gencode("    jg(_);");
+			if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jge(_);");
+			gencode("    j(_);");
 		}
 		
 		if(regs_size > 2){
@@ -502,7 +547,7 @@ void OpBinary::setArguments(ExpAst* x, ExpAst *y) {
 	right = y;
 }
 OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
-	
+	type = new Type();
 	if (x->type->tag == Error || y->type->tag == Error){
 		type->tag = Error;
 		return;
@@ -627,23 +672,45 @@ void OpUnary::print(){
 extern GlobalTable* gt;
 
 void Funcall::generate_code(SymbolTable* st){
-	
-	if (gt->getRetType(st->funcName)->basetype == Int)
-		gencode("\t pushi(1); //return");
-	else if (gt->getRetType(st->funcName)->basetype == Float)
-		gencode("\t pushi(1); //return");
-	else if (gt->getRetType(st->funcName)->basetype == Void)
-		gencode("\t pushi(0); //return ");
-				
-	for (int i = 1; i<children.size(); i++){
+	string calledFunc = ((Identifier *)children[0])->child;
+	if (calledFunc == "print") {
+		children[1]->generate_code(st);
+		gencode("    cout << \"printing "+((Identifier *)children[1])->child+": \";");
+		if (children[1]->type->tag == Base && children[1]->type->basetype == Int) gencode("    print_int("+regs.back()+");");
+		if (children[1]->type->tag == Base && children[1]->type->basetype == Float) gencode("    print_float("+regs.back()+");");
+		gencode("    cout << endl;");
+		return;
+	}
+	if (gt->getRetType(calledFunc)->basetype == Int)
+		gencode("    pushi(1); //return");
+	else if (gt->getRetType(calledFunc)->basetype == Float)
+		gencode("    pushf(1); //return");
+	else if (gt->getRetType(calledFunc)->basetype == Void)
+		gencode("    pushi(0); //return ");
+	int tot_size = 0;
+	for (int i = children.size()-1; i>0; i--){
+		tot_size += children[i]->type->size();
 		children[i]->generate_code(st);
-		if (children[i]->type->basetype == Int){
-			gencode("\t pushi("+regs[0]+");//args");
+		Basetype childBtype = children[i]->type->getBasetype();
+		if (children[i]->type->tag == Pointer) {
+			string typestr = "";
+			if (childBtype == Int) typestr = "i";
+			else if(childBtype == Float) typestr = "f";
+			int nbytes = children[i]->type->size();
+			for (int i = nbytes-4; i >= 0; i-=4) {
+				gencode("    load"+typestr+"(ind("+regs.back()+", "+int_to_str(i)+"), "+regs[0]+");");
+				gencode("    push"+typestr+"("+regs[0]+");");
+			}
 		}
-		else{
-			gencode("\t pushf("+regs[0]+");//args");
+		else if(children[i]->type->tag == Base) {
+			if (childBtype == Int) gencode("    pushi("+ regs.back() +");");
+			else if(childBtype == Float) gencode("    pushf("+ regs.back() +");");
 		}
 	}
+	gencode("    "+calledFunc+"();");
+	gencode("    popi("+ int_to_str(tot_size/4) +");");
+	gencode("    loadi(ind(esp), "+ regs.back() +");");
+	gencode("    popi(1);");
 }
 Funcall::Funcall(){}
 Funcall::Funcall(vector<ExpAst*> exps){
@@ -664,7 +731,7 @@ void Funcall::print(){
 
 
 void FloatConst::generate_code(SymbolTable* st){
-	gencode("\t move("+ float_to_str(child) +", "+ regs.back() +");");
+	gencode("    move("+ float_to_str(child) +", "+ regs.back() +");");
 	//return "";
 }
 FloatConst::FloatConst(float x){
@@ -676,7 +743,7 @@ void FloatConst::print(){
 
 
 void IntConst::generate_code(SymbolTable* st){
-	gencode("\t move("+ int_to_str(child) +", "+ regs.back() +");");
+	gencode("    move("+ int_to_str(child) +", "+ regs.back() +");");
 	//return "";
 }
 IntConst::IntConst(){}
@@ -704,11 +771,11 @@ void Identifier::generate_code( SymbolTable* st){
 		Type * tp = st->getType(child);
 		int offset = st->getOffset(child);
 		string offset_str = int_to_str(offset);
-		if (tp->tag == Base && tp->basetype == Int) gencode("\t loadi(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
-		else if (tp->tag == Base && tp->basetype == Float) gencode("\t loadf(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
+		if (tp->tag == Base && tp->basetype == Int) gencode("    loadi(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
+		else if (tp->tag == Base && tp->basetype == Float) gencode("    loadf(ind(ebp, "+ offset_str +"), "+ regs.back() +");");
 		else if (tp->tag == Pointer) {
-			gencode("\t move("+ offset_str +", "+ regs.back() +");");
-			gencode("\t addi(ebp,"+ regs.back() +");");
+			gencode("    move("+ offset_str +", "+ regs.back() +");");
+			gencode("    addi(ebp,"+ regs.back() +");");
 		}
 	}
 }
@@ -719,8 +786,8 @@ void Identifier::generate_code_addr( SymbolTable* st){
 		Type * tp = st->getType(child);
 		int offset = st->getOffset(child);
 		string offset_str = int_to_str(offset);
-		gencode("\t move("+ offset_str +", "+ regs.back() +");");
-		gencode("\t addi(ebp,"+ regs.back() +");");
+		gencode("    move("+ offset_str +", "+ regs.back() +");");
+		gencode("    addi(ebp,"+ regs.back() +");");
 	}
 }
 
@@ -736,33 +803,33 @@ void Identifier::print(){
 void Index::generate_code(SymbolTable* st){
 	left->generate_code(st);
 	if (regs.size() == 2) {
-		gencode("\t pushi("+ regs.back() +");");
+		gencode("    pushi("+ regs.back() +");");
 		right->generate_code(st);
-		gencode("\t loadi(ind(esp), "+ regs[0] +");");
-		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
-		gencode("\t addi("+ regs[0] +", "+ regs.back() +"); ");
+		gencode("    loadi(ind(esp), "+ regs[0] +");");
+		gencode("    muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
+		gencode("    addi("+ regs[0] +", "+ regs.back() +"); ");
 		if (type->tag == Base) {
 			if (type->basetype == Int) {
-				gencode("\t loadi(ind("+ regs.back() +"), "+ regs.back() +"); ");
+				gencode("    loadi(ind("+ regs.back() +"), "+ regs.back() +"); ");
 			}
 			else if (type->basetype == Float) {
-				gencode("\t loadf(ind("+ regs.back() +"), "+ regs.back() +"); ");
+				gencode("    loadf(ind("+ regs.back() +"), "+ regs.back() +"); ");
 			}
 		}
-		gencode("\t popi(1);");
+		gencode("    popi(1);");
 	}
 	else {
 		string left_reg = regs.back();
 		regs.pop_back();
 		right->generate_code(st);
-		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
-		gencode("\t addi("+ left_reg +", "+ regs.back() +"); ");
+		gencode("    muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
+		gencode("    addi("+ left_reg +", "+ regs.back() +"); ");
 		if (type->tag == Base) {
 			if (type->basetype == Int) {
-				gencode("\t loadi(ind("+ regs.back() +"), "+ regs.back() +"); ");
+				gencode("    loadi(ind("+ regs.back() +"), "+ regs.back() +"); ");
 			}
 			else if (type->basetype == Float) {
-				gencode("\t loadf(ind("+ regs.back() +"), "+ regs.back() +"); ");
+				gencode("    loadf(ind("+ regs.back() +"), "+ regs.back() +"); ");
 			}
 		}
 		regs.push_back(left_reg);
@@ -774,19 +841,19 @@ void Index::generate_code(SymbolTable* st){
 void Index::generate_code_addr(SymbolTable* st){
 	left->generate_code(st);
 	if (regs.size() == 2) {
-		gencode("\t pushi("+ regs.back() +");");
+		gencode("    pushi("+ regs.back() +");");
 		right->generate_code(st);
-		gencode("\t loadi(ind(esp), "+ regs[0] +");");
-		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
-		gencode("\t addi("+ regs[0] +", "+ regs.back() +"); ");
-		gencode("\t popi(1);");
+		gencode("    loadi(ind(esp), "+ regs[0] +");");
+		gencode("    muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
+		gencode("    addi("+ regs[0] +", "+ regs.back() +"); ");
+		gencode("    popi(1);");
 	}
 	else {
 		string left_reg = regs.back();
 		regs.pop_back();
 		right->generate_code(st);
-		gencode("\t muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
-		gencode("\t addi("+ left_reg +", "+ regs.back() +"); ");
+		gencode("    muli("+ int_to_str(type->size()) +", "+ regs.back() +"); ");
+		gencode("    addi("+ left_reg +", "+ regs.back() +"); ");
 		regs.push_back(left_reg);
 		swap();
 	}

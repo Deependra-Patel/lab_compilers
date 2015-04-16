@@ -14,6 +14,10 @@ struct Code {
 };
 
 void gencode(string);
+void insert_locals(SymbolTable*);
+void remove_locals(SymbolTable*);
+void save_regs();
+void load_regs();
 
 enum opNameB{OR=1,
 			 AND=2,
