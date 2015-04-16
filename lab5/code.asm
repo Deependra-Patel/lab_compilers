@@ -10,9 +10,8 @@ void fact(){
     loadi(ind(ebp, 4), eax);
     move(0, ebx);
     cmpi(eax, ebx);
-    je(l13);
-    j(l22);
-l13:
+    jne(l21);
+l12:
     move(5, ebx);
     move(4, eax);
     addi(ebp,eax);
@@ -20,8 +19,8 @@ l13:
     move(1, eax);
     storei(eax, ind(ebp, 8));
     j(retfact);
-    j(l41);
-l22:
+    j(l40);
+l21:
     pushi(1); //return
     loadi(ind(ebp, 4), eax);
     move(1, ebx);
@@ -40,7 +39,7 @@ l22:
     muli(eax, ebx);
     storei(ebx, ind(ebp, 8));
     j(retfact);
-l41:
+l40:
 retfact:
     loadi(ind(esp), eax);
     popi(1);
@@ -68,14 +67,13 @@ void fib(){
     loadi(ind(ebp, 4), ebx);
     move(2, eax);
     cmpi(ebx, eax);
-    jl(l13);
-    j(l18);
-l13:
+    jge(l17);
+l12:
     loadi(ind(ebp, 4), eax);
     storei(eax, ind(ebp, 8));
     j(retfib);
-    j(l42);
-l18:
+    j(l41);
+l17:
     pushi(1); //return
     loadi(ind(ebp, 4), eax);
     move(1, ebx);
@@ -99,7 +97,7 @@ l18:
     addi(ebx, ecx);
     storei(ecx, ind(ebp, 8));
     j(retfib);
-l42:
+l41:
 retfib:
     loadi(ind(esp), eax);
     popi(1);
@@ -128,20 +126,32 @@ void main(){
     move(-4, ebx);
     addi(ebp,ebx);
     storei(ecx, ind(ebx));
-    pushi(1); //return
     loadi(ind(ebp, -4), ebx);
-    pushi(ebx);
-    fib();
-    popi(1);
-    loadi(ind(esp), ebx);
-    popi(1);
+    move(10, ecx);
+    cmpi(ebx, ecx);
+    jle(l21);
+l16:
+    loadi(ind(ebp, -4), ecx);
+    move(10, ebx);
+    cmpi(ecx, ebx);
+    jl(l27);
+l21:
+    move(1, ebx);
     move(-4, ecx);
     addi(ebp,ecx);
     storei(ebx, ind(ecx));
-    loadi(ind(ebp, -4), ecx);
+    j(l32);
+l27:
+    move(2, ecx);
+    move(-4, ebx);
+    addi(ebp,ebx);
+    storei(ecx, ind(ebx));
+l32:
+    loadi(ind(ebp, -4), ebx);
     cout << "printing a: ";
-    print_int(ecx);
+    print_int(ebx);
     cout << endl;
+    move(3, ebx);
     j(retmain);
 retmain:
     loadi(ind(esp), eax);

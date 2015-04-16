@@ -502,8 +502,7 @@ postfix_expression
 	}
 	| l_expression INC_OP
 	{
-		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);;
-		$<expAst>1->type->Print();
+		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);
 	}
 	;
 

@@ -106,6 +106,7 @@ class ExpAst:public abstract_astnode{
 	void generate_code(SymbolTable*) = 0;
 	void print () = 0;
 	vector<int> FalseList, TrueList;
+	bool Fall;
 };
 class ArrayRef: public ExpAst{
  public:

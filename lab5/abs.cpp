@@ -350,12 +350,10 @@ void Return::print() {
 
 // for If
 void If::generate_code(SymbolTable* st){
+	first->Fall = true;
 	first->generate_code(st);
 	string sec = nextInstr();
 	gencode(sec +":");
-	cout << "truelist : ";
-	for (int i = 0; i < first->TrueList.size(); i++) cout << first->TrueList[i] << " ";
-	cout << " -> " << sec << endl;
 	backpatch(first->TrueList, sec);
 	second->generate_code(st);
 	gencode("    j(_);");
@@ -395,7 +393,7 @@ void If::print() {
 void While::generate_code(SymbolTable* st){
 	string start = nextInstr();
 	gencode(start+":");
-	
+	left->Fall = true;
 	left->generate_code(st);
 	string stmt_instr = nextInstr();
 	gencode(stmt_instr+":");
@@ -427,6 +425,7 @@ void For::generate_code(SymbolTable* st){
 	first->generate_code(st);
 	string cond = nextInstr();
 	gencode(cond+":");
+	second->Fall = true;
 	second->generate_code(st);
 	string child_instr = nextInstr();
 	gencode(child_instr+":");
@@ -463,7 +462,6 @@ void For::print() {
 }
 
 void OpBinary::generate_code(SymbolTable* st){
-	left->generate_code(st);
 	string left_reg, right_reg;
 	string type = "";
 	int regs_size = regs.size();
@@ -471,31 +469,39 @@ void OpBinary::generate_code(SymbolTable* st){
 		type = "i";
 	else if (left->type->basetype == Int)
 		type = "f";
-	
-	if (regs_size == 2) {
-		gencode("    push"+type+"("+ regs.back() +");    // pushing temporary storage");		
-	}
-	else {
-		left_reg = regs.back();
-		regs.pop_back();
-	}
+   
 
 	if (opName == AND) {
+		left->Fall = true;
+		left->generate_code(st);
 		string sec = nextInstr();
 		gencode(sec+":");
+		right->Fall = Fall;
 		right->generate_code(st);
+		TrueList = right->TrueList;
 		FalseList = merge(left->FalseList, right->FalseList);
 		backpatch(left->TrueList, sec);
 	}
 	else if(opName == OR){
+		left->Fall = false;
+		left->generate_code(st);
 		string sec = nextInstr();
 		gencode(sec+":");
+		right->Fall = Fall;
 		right->generate_code(st);
 		TrueList = merge(left->TrueList, right->TrueList);
 		FalseList = right->FalseList;
 		backpatch(left->FalseList, sec);	
 	}
 	else if (type == "i" || type == "f"){
+		left->generate_code(st);
+		if (regs_size == 2) {
+			gencode("    push"+type+"("+ regs.back() +");    // pushing temporary storage");		
+		}
+		else {
+			left_reg = regs.back();
+			regs.pop_back();
+		}		
 		right->generate_code(st);
 		if(regs_size == 2){
 			gencode("    load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
@@ -519,16 +525,27 @@ void OpBinary::generate_code(SymbolTable* st){
 		}
 		else {
 			//from here comp commands
-			gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
-			TrueList.push_back(nextInt());
-			FalseList.push_back(nextInt()+1);
-			if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    je(_);");
-			if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    jne(_);");
-			if (opName == LT_INT || opName == LT_FLOAT) gencode("    jl(_);");
-			if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jle(_);");
-			if (opName == GT_INT || opName == GT_FLOAT) gencode("    jg(_);");
-			if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jge(_);");
-			gencode("    j(_);");
+			if (!Fall){
+				gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
+				TrueList.push_back(nextInt());
+				if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    je(_);");
+				if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    jne(_);");
+				if (opName == LT_INT || opName == LT_FLOAT) gencode("    jl(_);");
+				if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jle(_);");
+				if (opName == GT_INT || opName == GT_FLOAT) gencode("    jg(_);");
+				if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jge(_);");
+				//gencode("    j(_);");
+			}
+			else {
+				gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
+				FalseList.push_back(nextInt());
+				if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    jne(_);");
+				if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    je(_);");
+				if (opName == LT_INT || opName == LT_FLOAT) gencode("    jge(_);");
+				if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jg(_);");
+				if (opName == GT_INT || opName == GT_FLOAT) gencode("    jle(_);");
+				if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jl(_);");
+			}
 		}
 		
 		if(regs_size > 2){
@@ -537,6 +554,8 @@ void OpBinary::generate_code(SymbolTable* st){
 		}
 	}
 }
+
+
 OpBinary::OpBinary(){};
 OpBinary::OpBinary(opNameB e){
   opName = e;
@@ -648,6 +667,19 @@ void OpBinary::print(){
 }
 
 void OpUnary::generate_code(SymbolTable* st){
+	child->generate_code(st);
+	string type = "";
+	if(child->type->basetype == Int)
+		type = "i";
+	else if(child->type->basetype == Float)
+		type = "f";
+	if (opName == PP || opName ==  PP_INT || opName == PP_FLOAT){
+		gencode("add"+type+"(1, "+regs.back()+");");
+	}
+	else if(opName == NOT || opName == NOT_INT || opName == NOT_FLOAT){
+		TrueList = child->FalseList;
+		FalseList = child->TrueList;
+	} 
 	//return "";
 }
 OpUnary::OpUnary(){}
