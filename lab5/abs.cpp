@@ -21,6 +21,8 @@ string int_to_str(int a) {
 string float_to_str(double a) {
 	stringstream ss;
 	ss << a;
+	int b = a;
+	if (a == b) return ss.str()+".0";
 	return ss.str();
 }
 
@@ -100,7 +102,8 @@ vector<int> merge(vector<int> vec1, vector<int> vec2){
 	vector<int> merged;
 	vec1.insert(vec1.end(), vec2.begin(), vec2.end());
 	sort(vec1.begin(), vec1.end());
-	merged.push_back(vec1[0]);
+	if(vec1.size() >= 1)
+		merged.push_back(vec1[0]);
 	for (int i=1; i<vec1.size(); i++){
 		if(vec1[i] != vec1[i-1])
 			merged.push_back(vec1[i]);
@@ -203,6 +206,10 @@ void Seq::print(){
 	cout <<")";
 }
 
+string Seq::getClass() {
+	return "Seq";
+}
+
 void BlockStatement::generate_code(SymbolTable* st){
 	for (int i = 0; i < children.size(); i++) children[i]->generate_code(st);
 }
@@ -221,15 +228,19 @@ void BlockStatement::print(){
 	cout << "])";
 }
 
-
+string BlockStatement::getClass() {
+	return "BlockStatement";
+}
 
 // for Ass
 void Ass::generate_code(SymbolTable* st){
+	cout << "errorhere " << endl;
 	if (left == NULL && right == NULL) return;
+	right->Fall = true;
+	
 	right->generate_code(st);
 	if (left == NULL) return;
 	ArrayRef* left1 = (ArrayRef *)left;
-	cout << "generating : " << st->funcName << endl;
 	if (regs.size() == 2) {
 		if (right->type->basetype == Int) {
 			gencode("    pushi("+ regs.back() +");    // pushing temporary storage");
@@ -308,6 +319,10 @@ void Ass::print(){
 	cout << ")";
 }
 
+string Ass::getClass() {
+	return "Ass";
+}
+
 // for Return
 void Return::generate_code(SymbolTable* st){
 	child->generate_code(st);
@@ -348,6 +363,10 @@ void Return::print() {
 	cout << ")";
 }
 
+string Return::getClass() {
+	return "Return";
+}
+
 // for If
 void If::generate_code(SymbolTable* st){
 	first->Fall = true;
@@ -384,11 +403,15 @@ void If::print() {
 	first->print();
 	cout << " ";
 	second->print();
-	cout << "gugn" << endl;
 	cout << " ";
 	third->print();
 	cout << ")";
 }
+
+string If::getClass() {
+	return "If";
+}
+
 // for While
 void While::generate_code(SymbolTable* st){
 	string start = nextInstr();
@@ -418,6 +441,10 @@ void While::print() {
 	cout << " ";
 	right->print();
 	cout << ")";
+}
+
+string While::getClass() {
+	return "While";
 }
 
 // for For
@@ -461,13 +488,17 @@ void For::print() {
 	cout << ")";
 }
 
+string For::getClass() {
+	return "For";
+}
+
 void OpBinary::generate_code(SymbolTable* st){
 	string left_reg, right_reg;
 	string type = "";
 	int regs_size = regs.size();
 	if (left->type->basetype == Int)
 		type = "i";
-	else if (left->type->basetype == Int)
+	else if (left->type->basetype == Float)
 		type = "f";
    
 
@@ -647,16 +678,21 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 		opName = (opNameB)((int)o+2);
 		type = x->type->copy();
 		if (o == LT || o == GT || o == LE_OP || o == GE_OP || o == NE_OP || o == EQ_OP || o == OR || o == AND){
-		if (x->type->isNumeric() && y->type->isNumeric()){
-			type = new Type(Base, Int);
+			if (x->type->isNumeric() && y->type->isNumeric()){
+				type = new Type(Base, Int);
+			}
+			else {
+				type = new Type(Error);
+			}
+			return ;
 		}
-		else {
-			type = new Type(Error);
-		}
-		return ;
-	}
+		cout << "printinghere "  << endl;
+		right->print();
+		cout << endl;
 	}	
 }
+
+
 
 void OpBinary::print(){
 	cout<<"("<<inverse_enum[opName] << " ";
@@ -666,20 +702,45 @@ void OpBinary::print(){
   cout<<")";
 }
 
+string OpBinary::getClass() {
+	return "OpBinary";
+}
+
+
+
 void OpUnary::generate_code(SymbolTable* st){
-	child->generate_code(st);
 	string type = "";
 	if(child->type->basetype == Int)
 		type = "i";
 	else if(child->type->basetype == Float)
 		type = "f";
-	if (opName == PP || opName ==  PP_INT || opName == PP_FLOAT){
-		gencode("add"+type+"(1, "+regs.back()+");");
+	if (opName ==  PP_INT || opName == PP_FLOAT){
+		((ArrayRef*)child)->generate_code_addr(st);
+		gencode("    load"+type+"(ind("+regs.back()+"), "+regs[0]+");");
+		if (type == "i") gencode("    add"+type+"(1, "+regs[0]+");");
+		else gencode("    add"+type+"(1.0, "+regs[0]+");");
+		gencode("    store"+type+"("+regs[0]+", ind("+regs.back()+"));");
+		if (type == "i") gencode("    add"+type+"(-1, "+regs[0]+");");
+		else gencode("    add"+type+"(-1.0, "+regs[0]+");");
+		gencode("    move("+regs[0]+", "+regs.back()+");");
+	}
+	if (opName ==  UMINUS_INT || opName == UMINUS_FLOAT){
+		((ArrayRef*)child)->generate_code(st);
+		gencode("    mul"+type+"(-1, "+regs.back()+");");
 	}
 	else if(opName == NOT || opName == NOT_INT || opName == NOT_FLOAT){
+		child->generate_code(st);
 		TrueList = child->FalseList;
 		FalseList = child->TrueList;
-	} 
+	}
+	else if(opName == TO_FLOAT) {
+		child->generate_code(st);
+		gencode("    intTofloat("+ regs.back() +");");
+	}
+	else if(opName == TO_INT) {
+		child->generate_code(st);
+		gencode("    floatToint("+ regs.back() +");");
+	}
 	//return "";
 }
 OpUnary::OpUnary(){}
@@ -690,15 +751,47 @@ OpUnary::OpUnary(ExpAst*x, opNameU e) {
 	child = x;
 	type = x->type;
 	opName = e;
+	if(e == PP){
+		if (x->type->basetype == Int)
+			opName = PP_INT;
+		else if(x->type->basetype == Float){
+			opName = PP_FLOAT;
+		}
+		else
+			type = new Type(Error);
+	}
+	if(e == UMINUS){
+		if (x->type->basetype == Int)
+			opName = UMINUS_INT;
+		else if(x->type->basetype == Float){
+			opName = UMINUS_FLOAT;
+		}
+		else
+			type = new Type(Error);
+	}
+	if(e == NOT){
+		if (x->type->basetype == Int)
+			opName = NOT_INT;
+		else if(x->type->basetype == Float){
+			opName = NOT_FLOAT;
+		}
+		else
+			type = new Type(Error);
+	}
 }
 OpUnary::OpUnary(ExpAst * x, OpUnary* y) {
 	opName = y->opName;
 	child = x;
+	type = x->type;
 }
 void OpUnary::print(){
 	cout<<"("<<inverse_enum[opName] << " ";
-  child->print();
+	child->print();
   cout<<")";
+}
+
+string OpUnary::getClass() {
+	return "OpUnary";
 }
 
 extern GlobalTable* gt;
@@ -761,6 +854,10 @@ void Funcall::print(){
   cout<<")";
 }
 
+string Funcall::getClass() {
+	return "Funcall";
+}
+
 
 void FloatConst::generate_code(SymbolTable* st){
 	gencode("    move("+ float_to_str(child) +", "+ regs.back() +");");
@@ -773,6 +870,9 @@ void FloatConst::print(){
   cout<<"(FloatConst "<<child<<")";
 }
 
+string FloatConst::getClass() {
+	return "FloatConst";
+}
 
 void IntConst::generate_code(SymbolTable* st){
 	gencode("    move("+ int_to_str(child) +", "+ regs.back() +");");
@@ -786,6 +886,9 @@ void IntConst::print(){
   cout<<"(IntConst "<<child<<")";
 }
 
+string IntConst::getClass() {
+	return "IntConst";
+}
 
 void StringConst::generate_code(SymbolTable* st){
 	//return "";
@@ -797,6 +900,9 @@ void StringConst::print(){
   cout<<"(StringConst "<<child<<")";
 }
 
+string StringConst::getClass() {
+	return "StringConst";
+}
 
 void Identifier::generate_code( SymbolTable* st){
 	if (st->checkScope(child)) {
@@ -829,6 +935,10 @@ Identifier::Identifier(string x){
 }
 void Identifier::print(){
   cout<<"(Identifier "<<child<<")";
+}
+
+string Identifier::getClass() {
+	return "Identifier";
 }
 
 
@@ -908,4 +1018,20 @@ void Index::print(){
   cout<<" ";
   right->print();
   cout<<")";
+}
+
+string Index::getClass() {
+	return "Index";
+}
+
+string StmtAst::getClass() {
+	return "StmtAst";
+}
+
+string ExpAst::getClass() {
+	return "ExpAst";
+}
+
+string ArrayRef::getClass() {
+	return "ArrayRef";
 }

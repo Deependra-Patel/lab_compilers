@@ -88,7 +88,7 @@ class abstract_astnode
   virtual void print () = 0;
   Type* type;
   virtual void generate_code(SymbolTable*) = 0;
-  //virtual basic_types getType() = 0;
+  virtual string getClass() = 0;
   //virtual bool checkTypeofAST() = 0;
  protected:
   // virtual void setType(basic_types) = 0;
@@ -99,11 +99,13 @@ class abstract_astnode
 class StmtAst:public abstract_astnode{
  public:
 	void generate_code(SymbolTable*) = 0;
+	string getClass();
 	void print () = 0;
 };
 class ExpAst:public abstract_astnode{
  public:	
 	void generate_code(SymbolTable*) = 0;
+	string getClass();
 	void print () = 0;
 	vector<int> FalseList, TrueList;
 	bool Fall;
@@ -111,8 +113,10 @@ class ExpAst:public abstract_astnode{
 class ArrayRef: public ExpAst{
  public:
 	void generate_code(SymbolTable*) = 0;
+	string getClass();
 	virtual void generate_code_addr(SymbolTable*) = 0;
 	void print () = 0;
+	//	virtual void makeBoolean() = 0;
 };
 
 class Seq:public StmtAst{
@@ -120,6 +124,7 @@ class Seq:public StmtAst{
   StmtAst *left, *right;
  public:
   	void generate_code(SymbolTable*);
+	string getClass();
 	void print();
 	Seq();
 	Seq(StmtAst* left, StmtAst* right);
@@ -132,6 +137,7 @@ class BlockStatement:public StmtAst{
 	void print();
 	BlockStatement();
 	void generate_code(SymbolTable*);
+	string getClass();
 	BlockStatement(StmtAst*);
 };
 
@@ -144,6 +150,7 @@ public:
   void print();
   Ass();
   	void generate_code(SymbolTable*);
+	string getClass();
 	Ass(ExpAst* left, ExpAst* right);
 };
 
@@ -153,6 +160,7 @@ class Return: public StmtAst{
   void print();
   Return();
 	void generate_code(SymbolTable*);
+	string getClass();
 	Return(ExpAst*, Type *);
 };
 
@@ -163,6 +171,7 @@ class If: public StmtAst{
   void print();
   If();
 	void generate_code(SymbolTable*);  
+	string getClass();
   If(ExpAst*, StmtAst*, StmtAst*);
 };
 
@@ -174,6 +183,7 @@ class While:public StmtAst{
   void print();
   While();
 	void generate_code(SymbolTable*);  
+	string getClass();
   While(ExpAst*, StmtAst*);
 };
 
@@ -185,6 +195,7 @@ class For:public StmtAst{
   void print();
   For();
   	void generate_code(SymbolTable*);
+	string getClass();
   For(ExpAst*, ExpAst*, ExpAst*, StmtAst*);
 };
 
@@ -197,20 +208,24 @@ class OpBinary:public ExpAst{
   OpBinary();
   void setArguments(ExpAst*, ExpAst*);
   	void generate_code(SymbolTable*);
+	string getClass();
   OpBinary(ExpAst*, ExpAst*, opNameB);
   OpBinary(opNameB);
+  void makeBoolean();
 };
 
 class OpUnary:public ExpAst{
+ public:
   ExpAst * child;
   opNameU opName;
- public:
   void print();
   OpUnary();
   OpUnary(ExpAst*, OpUnary*);
   OpUnary(ExpAst*, opNameU);
   	void generate_code(SymbolTable*);
+	string getClass();
   OpUnary(opNameU);
+  void makeBoolean();
 };
 
 class Funcall:public ExpAst{
@@ -220,6 +235,7 @@ class Funcall:public ExpAst{
   Funcall();
   Funcall(vector<ExpAst*>);
   	void generate_code(SymbolTable*);
+	string getClass();
   Funcall(ExpAst*);
 };
 
@@ -229,6 +245,7 @@ class FloatConst:public ExpAst{
 	void print();
 	FloatConst();
   	void generate_code(SymbolTable*);
+	string getClass();
 	FloatConst(float x);
 };
 
@@ -238,6 +255,7 @@ class IntConst:public ExpAst{
   void print();
   IntConst();
   	void generate_code(SymbolTable*);
+	string getClass();
   IntConst(int x);
 };
 
@@ -247,6 +265,7 @@ class StringConst:public ExpAst{
   void print();
   StringConst();
   	void generate_code(SymbolTable*);
+	string getClass();
   StringConst(string x);
 };
 
@@ -256,8 +275,10 @@ class Identifier:public ArrayRef{
   void print();
   Identifier();
   	void generate_code(SymbolTable*);
+	string getClass();
 	void generate_code_addr(SymbolTable *);
   Identifier(string x);
+  //  void makeBoolean();
 };
 
 class Index:public ArrayRef{
@@ -268,7 +289,9 @@ class Index:public ArrayRef{
   void print();
   Index();
   	void generate_code(SymbolTable*);
+	string getClass();
 	void generate_code_addr(SymbolTable *);
   Index(ArrayRef* left, ExpAst* right);
   Index(string s);
+  // void makeBoolean();
 };

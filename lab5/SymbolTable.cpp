@@ -38,9 +38,6 @@ Type::Type(Kind tag, Type* pointed){
 	this->pointed = pointed;
 }
 void Type::Print(){
-	cout << "sizeprinting" << endl;
-	print_size("");
-	return;
 	cout<<"Kind: "<<tag<<"#Basetype: "<<basetype<<"#Size: "<<size()<<"#";
 	if (tag == Pointer) cout << pointed->size() << "#";
 }
@@ -174,7 +171,8 @@ int SymbolTable::getReturnAddr() {
 	if (returnAddr != -1) return returnAddr;
 	returnAddr = 4;
 	for (map<string, SymbolTableEntry *>::iterator it = parameters.begin(); it != parameters.end(); it++) {
-		if (returnAddr < it->second->addr+4) returnAddr = it->second->addr+4;
+		if (returnAddr < it->second->addr+it->second->size())
+			returnAddr = it->second->addr+it->second->size();
 	}
 	return returnAddr;
 }

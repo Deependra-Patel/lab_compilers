@@ -1,11 +1,1 @@
-sizeprinting
-sizeprinting
-sizeprinting
-sizeprinting
-##SymbolTable::# Function Name: main#Return Type: sizeprinting
-#Printing parameters: ##Printing local variables: #b => Offset: -4#sizeprinting
-##printing: (Block [(Ass (Identifier b) (IntConst 2)) (Ass (Identifier b) (UMINUS (Identifier b))) (Ass (Funcall (Identifier print) (Identifier b))) (Return (TO_FLOAT (IntConst 3)))])generating : main
-sizeprinting
-sizeprinting
-sizeprinting
-sizeprinting
+##SymbolTable::# Function Name: main#Return Type: Kind: 0#Basetype: 2#Size: 0##Printing parameters: ##Printing local variables: #a => Offset: -4#Kind: 0#Basetype: 1#Size: 4###b => Offset: -8#Kind: 0#Basetype: 0#Size: 4###printing: (Block [(Ass (Identifier a) (FloatConst 2.1)) (Ass (Identifier b) (TO_INT (UMINUS_FLOAT (Identifier a)))) (Empty)])errorhere 

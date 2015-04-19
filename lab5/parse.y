@@ -242,7 +242,7 @@ statement
 assignment_statement
 	: ';'
 	{
-		$<stmtAst>$ = new Ass();
+		$<stmtAst>$ = new Ass(NULL, NULL);
 	}
 	|  l_expression '=' expression ';'
 	{		
@@ -395,7 +395,7 @@ unary_expression
 	}
 	| unary_operator postfix_expression
 	{
-		$<expAst>$ = new OpUnary($<expAst>2, (OpUnary*)$<expAst>1);
+		$<expAst>$ = new OpUnary($<expAst>2, ((OpUnary*)$<expAst>1)->opName);
 		$<expAst>$->type = $<expAst>2->type;
 	} 
 	;
@@ -503,6 +503,9 @@ postfix_expression
 	| l_expression INC_OP
 	{
 		$<expAst>$ = new OpUnary($<expAst>1, opNameU::PP);
+		if ($<expAst>$->type->tag == Error){
+			cout<<"Error:: On line "<<d_scanner.lineNr()<<", in inc_op lexpression should be variable"<<endl;			
+		}
 	}
 	;
 
