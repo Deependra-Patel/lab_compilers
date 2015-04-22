@@ -140,6 +140,66 @@ void printCode(){
 	cout<<code.str()<<endl;
 }
 
+ExpAst * make_boolean(ExpAst * exp) {
+	string type = exp->getClass();
+	string type_str = "";
+	if (exp->type->tag == Base && exp->type->basetype == Int)
+		type_str = "Int";
+	else if (exp->type->tag == Base && exp->type->basetype == Float)
+		type_str = "Float";
+	bool do_it = false;
+	if (type == "Identifier" || type == "Index") {
+		do_it = true;
+	}
+	else if (type == "OpBinary") {
+		OpBinary * new_opb = (OpBinary *) exp;
+		if ((int)new_opb->opName >= 21 && (int)new_opb->opName <= 33) {
+			do_it = true;
+		}
+	}
+	else if (type == "OpUnary") {
+		OpUnary * new_opu = (OpUnary *) exp;
+		if ((int)new_opu->opName >= 37 && (int)new_opu->opName <= 39) {
+			do_it = true;
+		}
+	}
+	else if (type == "Funcall") do_it = true;
+	if (!do_it) return exp;
+	ExpAst * new_exp = exp;
+	if (type_str == "Int")
+		new_exp = new OpBinary(exp, new IntConst(0), NE_OP);
+	else if (type_str == "Float")
+		new_exp = new OpBinary(exp, new FloatConst(0), NE_OP);
+	return new_exp;
+}
+
+
+void gen_bool(ExpAst * exp) {
+	if (exp->getClass() == "OpBinary") {
+		OpBinary * opb = (OpBinary *) exp;
+		if ((int)opb->opName > 20) return;
+	}
+	else if (exp->getClass() == "OpUnary") {
+		OpUnary * opu = (OpUnary *) exp;
+		if ((int)opu->opName > 39 || (int)opu->opName < 37) return;
+	}
+	else return;
+	
+	string sec = nextInstr();
+	gencode(sec +":");
+	backpatch(exp->TrueList, sec);
+	gencode("    move(1, "+ regs.back() +");");
+	gencode("    j(_);");
+	vector<int> temp;
+	temp.push_back(code.size()-1);
+	sec = nextInstr();
+	gencode(sec +":");
+	backpatch(exp->FalseList, sec);
+	gencode("    move(0, "+ regs.back() +");");
+	sec = nextInstr();
+	gencode(sec +":");
+	backpatch(temp, sec);
+}
 
 string inverse_enum[] = {
 "",
@@ -239,6 +299,7 @@ void Ass::generate_code(SymbolTable* st){
 	right->Fall = true;
 	
 	right->generate_code(st);
+	gen_bool(right);
 	if (left == NULL) return;
 	ArrayRef* left1 = (ArrayRef *)left;
 	if (regs.size() == 2) {
@@ -393,7 +454,7 @@ If::If() {
 	
 }
 If::If(ExpAst* f, StmtAst* s, StmtAst* t){
-	first = f;
+	first = make_boolean(f);
 	second = s;
 	third = t;
 }
@@ -431,7 +492,7 @@ While::While() {
 	
 }
 While::While(ExpAst* l, StmtAst* r) {
-	left = l;
+	left = make_boolean(l);
 	right = r;
 }
 
@@ -471,7 +532,7 @@ For::For() {
 }
 For::For(ExpAst* f, ExpAst* s, ExpAst* t, StmtAst* c){
 	first = f;
-	second = s;
+	second = make_boolean(s);
 	third = t;
 	child = c;
 }
@@ -505,10 +566,12 @@ void OpBinary::generate_code(SymbolTable* st){
 	if (opName == AND) {
 		left->Fall = true;
 		left->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(left);
 		string sec = nextInstr();
 		gencode(sec+":");
 		right->Fall = Fall;
 		right->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(right);
 		TrueList = right->TrueList;
 		FalseList = merge(left->FalseList, right->FalseList);
 		backpatch(left->TrueList, sec);
@@ -516,16 +579,19 @@ void OpBinary::generate_code(SymbolTable* st){
 	else if(opName == OR){
 		left->Fall = false;
 		left->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(left);
 		string sec = nextInstr();
 		gencode(sec+":");
 		right->Fall = Fall;
 		right->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(right);
 		TrueList = merge(left->TrueList, right->TrueList);
 		FalseList = right->FalseList;
 		backpatch(left->FalseList, sec);	
 	}
 	else if (type == "i" || type == "f"){
 		left->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(left);
 		if (regs_size == 2) {
 			gencode("    push"+type+"("+ regs.back() +");    // pushing temporary storage");		
 		}
@@ -534,6 +600,7 @@ void OpBinary::generate_code(SymbolTable* st){
 			regs.pop_back();
 		}		
 		right->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(right);
 		if(regs_size == 2){
 			gencode("    load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
 			gencode("    pop"+type+"(1);");
@@ -597,6 +664,16 @@ void OpBinary::setArguments(ExpAst* x, ExpAst *y) {
 	right = y;
 }
 OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
+	if (o == OR || o == AND) {
+		x = make_boolean(x);
+		y = make_boolean(y);
+	}
+		cout << "printing1" << endl;
+		x->print();
+		cout << endl;
+		y->print();
+		cout << endl;
+		cout << o << endl;
 	type = new Type();
 	if (x->type->tag == Error || y->type->tag == Error){
 		type->tag = Error;
@@ -725,7 +802,8 @@ void OpUnary::generate_code(SymbolTable* st){
 		gencode("    move("+regs[0]+", "+regs.back()+");");
 	}
 	if (opName ==  UMINUS_INT || opName == UMINUS_FLOAT){
-		((ArrayRef*)child)->generate_code(st);
+		child->generate_code(st);
+		gen_bool(child);
 		gencode("    mul"+type+"(-1, "+regs.back()+");");
 	}
 	else if(opName == NOT || opName == NOT_INT || opName == NOT_FLOAT){
@@ -748,6 +826,7 @@ OpUnary::OpUnary(opNameU e){
   opName = e;
 }
 OpUnary::OpUnary(ExpAst*x, opNameU e) {
+	if (e >= 37 && e <= 39) x = make_boolean(x);
 	child = x;
 	type = x->type;
 	opName = e;
@@ -816,6 +895,7 @@ void Funcall::generate_code(SymbolTable* st){
 	for (int i = children.size()-1; i>0; i--){
 		tot_size += children[i]->type->size();
 		children[i]->generate_code(st);
+		gen_bool(children[i]);
 		Basetype childBtype = children[i]->type->getBasetype();
 		if (children[i]->type->tag == Pointer) {
 			string typestr = "";
@@ -865,6 +945,7 @@ void FloatConst::generate_code(SymbolTable* st){
 }
 FloatConst::FloatConst(float x){
   child = x;
+  type = new Type(Base, Float);
 }
 void FloatConst::print(){
   cout<<"(FloatConst "<<child<<")";
@@ -881,6 +962,7 @@ void IntConst::generate_code(SymbolTable* st){
 IntConst::IntConst(){}
 IntConst::IntConst(int x){
   child = x;
+  type = new Type(Base, Int);
 }
 void IntConst::print(){
   cout<<"(IntConst "<<child<<")";

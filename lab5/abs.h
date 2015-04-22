@@ -19,54 +19,55 @@ void remove_locals(SymbolTable*);
 void save_regs();
 void load_regs();
 
-enum opNameB{OR=1,
-			 AND=2,
-			 EQ_OP=3,
-       EQ_OP_INT=4,
-       EQ_OP_FLOAT=5,       
-			 NE_OP=6,
-       NE_OP_INT=7,
-       NE_OP_FLOAT=8,       
-			 LT=9,
-       LT_INT=10,
-       LT_FLOAT=11,
-			 LE_OP=12,
-       LE_OP_INT=13,
-       LE_OP_FLOAT=14, 
-			 GT=15,
-       GT_INT=16,
-       GT_FLOAT=17,
-			 GE_OP=18,
-       GE_OP_INT=19,
-       GE_OP_FLOAT=20, 
-			 PLUS=21,
-       PLUS_INT=22,
-       PLUS_FLOAT=23, 
-			 MINUS=24,  
-       MINUS_INT=25,
-       MINUS_FLOAT=26,
-			 MULT=27,
-       MULT_INT=28,   
-       MULT_FLOAT=29,
-			 DIV = 30,
-			 DIV_INT = 31,
-			 DIV_FLOAT = 32,
-			 ASSIGN=33,  
+enum opNameB{
+	OR=1,
+	AND=2,
+	EQ_OP=3,
+	EQ_OP_INT=4,
+	EQ_OP_FLOAT=5,       
+	NE_OP=6,
+	NE_OP_INT=7,
+	NE_OP_FLOAT=8,       
+	LT=9,
+	LT_INT=10,
+	LT_FLOAT=11,
+	LE_OP=12,
+	LE_OP_INT=13,
+	LE_OP_FLOAT=14, 
+	GT=15,
+	GT_INT=16,
+	GT_FLOAT=17,
+	GE_OP=18,
+	GE_OP_INT=19,
+	GE_OP_FLOAT=20, 
+	PLUS=21,
+	PLUS_INT=22,
+	PLUS_FLOAT=23, 
+	MINUS=24,  
+	MINUS_INT=25,
+	MINUS_FLOAT=26,
+	MULT=27,
+	MULT_INT=28,   
+	MULT_FLOAT=29,
+	DIV = 30,
+	DIV_INT = 31,
+	DIV_FLOAT = 32,
+	ASSIGN=33,  
 };
 
 
 enum opNameU{
-  UMINUS=34,
-  UMINUS_INT=35,
-  UMINUS_FLOAT=36,
+	UMINUS=34,
+	UMINUS_INT=35,
+	UMINUS_FLOAT=36,
 	NOT=37,
-  NOT_INT=38,
-  NOT_FLOAT=39,
+	NOT_INT=38,
+	NOT_FLOAT=39,
 	PP=40,
-  PP_INT=41,
-  PP_FLOAT=42,
-  TO_FLOAT=43,
-  TO_INT=44
+	PP_INT=41,
+	PP_FLOAT=42,
+	TO_FLOAT=43,
+	TO_INT=44
 };
 
 class symbolTable{
@@ -108,7 +109,7 @@ class ExpAst:public abstract_astnode{
 	string getClass();
 	void print () = 0;
 	vector<int> FalseList, TrueList;
-	bool Fall;
+	bool Fall = true;
 };
 class ArrayRef: public ExpAst{
  public:
@@ -201,9 +202,9 @@ class For:public StmtAst{
 
 ///////////////////////////////////////////////
 class OpBinary:public ExpAst{
+ public:
   ExpAst * left, *right;
   opNameB opName;
- public:
   void print();
   OpBinary();
   void setArguments(ExpAst*, ExpAst*);
@@ -295,3 +296,7 @@ class Index:public ArrayRef{
   Index(string s);
   // void makeBoolean();
 };
+
+
+ExpAst * make_boolean(ExpAst*);
+void gen_bool(ExpAst *);
