@@ -594,7 +594,7 @@ selection_statement
 	: IF '(' expression ')' statement ELSE statement
 	{
 	  $<stmtAst>$ = new If($<expAst>3, $<stmtAst>5, $<stmtAst>7);
-		$<stmtAst>$->print();
+	  //$<stmtAst>$->print();
 		cout << endl;
  	} 
 	;

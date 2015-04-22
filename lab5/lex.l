@@ -1,6 +1,7 @@
 whitespace									[ \t\n]+
 
-STRING_LITERAL								\"([^\\]|([\\][tn\"\\]))*\"
+STRING_LITERAL								\"(\\[nt"\\]|[^"\\])*\"
+//\"([^\\]|([\\][tn\"\\]))*\"
 C-integer-constant-1						[1-9][0-9]*
 C-integer-constant-2						0[bB][01]*
 C-integer-constant-3						0[0-7]*
@@ -27,10 +28,12 @@ ELSE          								else
 WHILE         								while
 FOR           								for
 symbols										['('')'',''['']''{''}'';''=''<''>''-''+''*''/''!']
+comment 									(\/\/[^\n]*[\n])|(\/\*([^*]*\*+[^*/])*[^*]*\*+\/)
 
 %%
 {whitespace}		
 {STRING_LITERAL}                        	{Parser::d_val__ = std::string(matched());return Parser::STRING_LITERAL;}
+{comment}
 void										return Parser::VOID;
 {INT}										return Parser::INT;
 {FLOAT}                                 	return Parser::FLOAT;

@@ -159,7 +159,7 @@ ExpAst * make_boolean(ExpAst * exp) {
 	}
 	else if (type == "OpUnary") {
 		OpUnary * new_opu = (OpUnary *) exp;
-		if ((int)new_opu->opName >= 37 && (int)new_opu->opName <= 39) {
+		if ((int)new_opu->opName <= 37 || (int)new_opu->opName >= 39) {
 			do_it = true;
 		}
 	}
@@ -561,7 +561,14 @@ void OpBinary::generate_code(SymbolTable* st){
 		type = "i";
 	else if (left->type->basetype == Float)
 		type = "f";
-   
+	cout << "something" << endl;
+	left->print();
+	right->print();
+	cout << endl;
+	left->type->Print();
+	right->type->Print();
+	cout << "printing type " << endl;
+	
 
 	if (opName == AND) {
 		left->Fall = true;
@@ -807,6 +814,7 @@ void OpUnary::generate_code(SymbolTable* st){
 		gencode("    mul"+type+"(-1, "+regs.back()+");");
 	}
 	else if(opName == NOT || opName == NOT_INT || opName == NOT_FLOAT){
+		child->Fall = !Fall;
 		child->generate_code(st);
 		TrueList = child->FalseList;
 		FalseList = child->TrueList;
@@ -857,6 +865,8 @@ OpUnary::OpUnary(ExpAst*x, opNameU e) {
 		else
 			type = new Type(Error);
 	}
+	if (e == TO_FLOAT) type = new Type(Base, Float);
+	if (e == TO_INT) type = new Type(Base, Int);
 }
 OpUnary::OpUnary(ExpAst * x, OpUnary* y) {
 	opName = y->opName;
@@ -877,6 +887,7 @@ extern GlobalTable* gt;
 
 void Funcall::generate_code(SymbolTable* st){
 	string calledFunc = ((Identifier *)children[0])->child;
+	if (calledFunc == "printf") return;
 	if (calledFunc == "print") {
 		children[1]->generate_code(st);
 		gencode("    cout << \"printing "+((Identifier *)children[1])->child+": \";");
