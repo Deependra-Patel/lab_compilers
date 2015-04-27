@@ -110,6 +110,8 @@ class ExpAst:public abstract_astnode{
 	void print () = 0;
 	vector<int> FalseList, TrueList;
 	bool Fall = true;
+	int Label;
+	virtual void label() = 0;
 };
 class ArrayRef: public ExpAst{
  public:
@@ -118,6 +120,7 @@ class ArrayRef: public ExpAst{
 	virtual void generate_code_addr(SymbolTable*) = 0;
 	void print () = 0;
 	//	virtual void makeBoolean() = 0;
+	void label() = 0;
 };
 
 class Seq:public StmtAst{
@@ -213,6 +216,7 @@ class OpBinary:public ExpAst{
   OpBinary(ExpAst*, ExpAst*, opNameB);
   OpBinary(opNameB);
   void makeBoolean();
+  void label();
 };
 
 class OpUnary:public ExpAst{
@@ -227,6 +231,7 @@ class OpUnary:public ExpAst{
 	string getClass();
   OpUnary(opNameU);
   void makeBoolean();
+  void label();
 };
 
 class Funcall:public ExpAst{
@@ -238,6 +243,7 @@ class Funcall:public ExpAst{
   	void generate_code(SymbolTable*);
 	string getClass();
   Funcall(ExpAst*);
+  void label();
 };
 
 class FloatConst:public ExpAst{
@@ -248,6 +254,7 @@ class FloatConst:public ExpAst{
   	void generate_code(SymbolTable*);
 	string getClass();
 	FloatConst(float x);
+  void label();
 };
 
 class IntConst:public ExpAst{
@@ -258,6 +265,7 @@ class IntConst:public ExpAst{
   	void generate_code(SymbolTable*);
 	string getClass();
   IntConst(int x);
+  void label();
 };
 
 class StringConst:public ExpAst{
@@ -268,6 +276,7 @@ class StringConst:public ExpAst{
   	void generate_code(SymbolTable*);
 	string getClass();
   StringConst(string x);
+  void label();
 };
 
 class Identifier:public ArrayRef{
@@ -280,6 +289,7 @@ class Identifier:public ArrayRef{
 	void generate_code_addr(SymbolTable *);
   Identifier(string x);
   //  void makeBoolean();
+  void label();
 };
 
 class Index:public ArrayRef{
@@ -295,6 +305,7 @@ class Index:public ArrayRef{
   Index(ArrayRef* left, ExpAst* right);
   Index(string s);
   // void makeBoolean();
+  void label();
 };
 
 
