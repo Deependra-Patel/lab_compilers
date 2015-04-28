@@ -1,5 +1,7 @@
 void main() {
-	int a[5],i,j;
-	a[0]=5;
-	a[3]=(a[2]=(a[1]=a[0]));
+   int num,prime;
+   int i;
+   i = 1;
+   i = (i==i)<=i;
+   print(i);
 }

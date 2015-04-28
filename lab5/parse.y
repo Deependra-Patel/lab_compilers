@@ -516,6 +516,7 @@ primary_expression
 	}
     | l_expression '=' expression // added this production
 	{
+		cout << "assigning" << endl;
 	  $<expAst>$ = new OpBinary($<expAst>1, $<expAst>3, opNameB::ASSIGN);
 		if ($<expAst>$->type->tag == Error){
 			cout<<"Error:: On line "<<d_scanner.lineNr()<<", Type mismatch."<<endl;			

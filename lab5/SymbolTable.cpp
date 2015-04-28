@@ -94,7 +94,7 @@ void SymbolTable::setOffsets(){
 SymbolTableEntry::SymbolTableEntry(int ind, int addr, Type* idType, string name){
 	this->name = name;
 	this->addr = addr;
-	this->idType = idType;
+	this->idType = idType->copy();
 	index = ind;
 }
 int SymbolTableEntry::size(){

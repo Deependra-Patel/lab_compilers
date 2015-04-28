@@ -297,7 +297,9 @@ void Ass::generate_code(SymbolTable* st){
 	cout << "errorhere " << endl;
 	if (left == NULL && right == NULL) return;
 	right->Fall = true;
-	
+	cout << "inass" << endl;
+	print();
+	cout << endl;
 	right->label();
 	right->generate_code(st);
 	gen_bool(right);
@@ -318,6 +320,7 @@ void Ass::generate_code(SymbolTable* st){
 			gencode("    loadi(ind(esp), "+ regs[0] +");    // loading temporary storage");
 			gencode("    storef("+ regs[0] +", ind("+ regs.back() +"));");
 		}
+		swap();
 	}
 	else {
 		string right_reg = regs.back();
@@ -572,8 +575,13 @@ void OpBinary::generate_code(SymbolTable* st){
 		type = "i";
 	else if (left->type->basetype == Float)
 		type = "f";
-
-	if (opName == AND) {
+	if (opName == ASSIGN) {
+			Ass * tempass = new Ass(left, right);
+			print();
+			cout << endl;
+			tempass->generate_code(st);
+	}
+	else if (opName == AND) {
 		left->Fall = true;
 		left->generate_code(st);
 		if (opName != AND && opName != OR) gen_bool(left);
@@ -642,6 +650,8 @@ void OpBinary::generate_code(SymbolTable* st){
 		else if (opName == DIV_INT || opName == DIV_FLOAT) gencode("    div"+type+"("+ left_reg +", "+ right_reg +");");
 		else if (opName == ASSIGN) {
 			Ass * tempass = new Ass(left, right);
+			print();
+			cout << endl;
 			tempass->generate_code(st);
 		}
 		else {
@@ -704,12 +714,21 @@ OpBinary::OpBinary(ExpAst*x, ExpAst*y, opNameB o) {
 	}
 
 	if (x->type->tag != Base || y->type->tag != Base){
+		x->print();
+		cout << endl;
+		x->type->Print();
+		cout << endl;
+		y->print();
+		cout << endl;
+		y->type->Print();
+		cout << endl;
 		if (x->type->equal(y->type)) {
 			left=x;
 			right=y;
 			opName = o;
 			return;
 		}
+		cout << "going here" << endl;
 		type->tag = Error;
 		return;
 	}
