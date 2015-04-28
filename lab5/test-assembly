@@ -1,7 +1,17 @@
-void main() {
-   int num,prime;
-   int i;
-   i = 1;
-   i = (i==i)<=i;
-   print(i);
+float fact(int n)
+{
+	if(n==0) return 1.0;
+	else return n*fact(n-1);
 }
+
+void r(int a)
+{
+	print(a);
+}
+void main() {
+	int i;
+	i = 1;
+	i = !i;
+	print(i);
+}
+

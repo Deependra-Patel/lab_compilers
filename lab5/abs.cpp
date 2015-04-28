@@ -294,12 +294,8 @@ string BlockStatement::getClass() {
 
 // for Ass
 void Ass::generate_code(SymbolTable* st){
-	cout << "errorhere " << endl;
 	if (left == NULL && right == NULL) return;
 	right->Fall = true;
-	cout << "inass" << endl;
-	print();
-	cout << endl;
 	right->label();
 	right->generate_code(st);
 	gen_bool(right);
@@ -571,10 +567,13 @@ void OpBinary::generate_code(SymbolTable* st){
 	string left_reg, right_reg;
 	string type = "";
 	int regs_size = regs.size();
+
 	if (left->type->basetype == Int)
 		type = "i";
 	else if (left->type->basetype == Float)
 		type = "f";
+
+	
 	if (opName == ASSIGN) {
 			Ass * tempass = new Ass(left, right);
 			print();
@@ -607,6 +606,61 @@ void OpBinary::generate_code(SymbolTable* st){
 		FalseList = right->FalseList;
 		backpatch(left->FalseList, sec);	
 	}
+	else if (changed){
+		// cout<<"123"<<endl;
+		// print();
+		// cout<<endl;
+		right->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(right);
+		gencode("    push"+type+"("+ regs.back() +");    // pushing temporary storage");
+		left->generate_code(st);
+		if (opName != AND && opName != OR) gen_bool(left);				
+		left_reg = regs.back();
+
+		gencode("    load"+type+"(ind(esp), "+ regs[0] +");    // loading temporary storage");
+		gencode("    pop"+type+"(1);");
+		right_reg = regs[0];
+		regs[0] = left_reg;
+		regs[regs.size()-1] = right_reg;
+
+		if (opName == MULT_INT || opName == MULT_FLOAT) gencode("    mul"+type+"("+ left_reg  +", "+ right_reg +");");
+		else if (opName == PLUS_INT || opName == PLUS_FLOAT) gencode("    add"+type+"("+ left_reg +", "+ right_reg +");");
+		else if (opName == MINUS_INT || opName == MINUS_FLOAT) {
+			gencode("    mul"+type+"(-1, "+ right_reg +");");
+			gencode("    add"+type+"("+ left_reg +", "+ right_reg +");");
+		}
+		else if (opName == DIV_INT || opName == DIV_FLOAT) gencode("    div"+type+"("+ left_reg +", "+ right_reg +");");
+		else if (opName == ASSIGN) {
+			Ass * tempass = new Ass(left, right);
+			print();
+			cout << endl;
+			tempass->generate_code(st);
+		}
+		else {
+			//from here comp commands
+			if (!Fall){
+				gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
+				TrueList.push_back(nextInt());
+				if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    je(_);");
+				if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    jne(_);");
+				if (opName == LT_INT || opName == LT_FLOAT) gencode("    jl(_);");
+				if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jle(_);");
+				if (opName == GT_INT || opName == GT_FLOAT) gencode("    jg(_);");
+				if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jge(_);");
+				//gencode("    j(_);");
+			}
+			else {
+				gencode("    cmp"+type+"("+ left_reg +", "+ right_reg +");");
+				FalseList.push_back(nextInt());
+				if (opName == EQ_OP_INT || opName == EQ_OP_FLOAT) gencode("    jne(_);");
+				if (opName == NE_OP_INT || opName == NE_OP_FLOAT) gencode("    je(_);");
+				if (opName == LT_INT || opName == LT_FLOAT) gencode("    jge(_);");
+				if (opName == LE_OP_INT || opName == LE_OP_FLOAT) gencode("    jg(_);");
+				if (opName == GT_INT || opName == GT_FLOAT) gencode("    jle(_);");
+				if (opName == GE_OP_INT || opName == GE_OP_FLOAT) gencode("    jl(_);");
+			}
+		}		
+	}	
 	else if (type == "i" || type == "f"){
 		if(right->Label < regs_size){
 			left->generate_code(st);
@@ -687,6 +741,9 @@ void OpBinary::label(){
 	if (left->Label == right->Label)
 		Label = left->Label + 1;
 	else Label = max(left->Label, right->Label);
+	changed = left->changed || right->changed;
+	if (opName == ASSIGN)
+		changed = true;
 }
 
 OpBinary::OpBinary(){};
@@ -861,6 +918,10 @@ void OpUnary::generate_code(SymbolTable* st){
 void OpUnary::label(){
 	child->label();
 	Label = child->Label;
+	changed = child->changed;
+
+	if (opName == PP_INT || opName == PP_FLOAT || opName == PP)
+		changed = true;
 }
 OpUnary::OpUnary(){}
 OpUnary::OpUnary(opNameU e){
@@ -965,6 +1026,7 @@ void Funcall::label(){
 	Label = 1;
 	for (int i =0; i<children.size(); i++){
 		Label = max(Label, children[i]->Label);
+		changed = changed || children[i]->changed;
 	}
 }
 Funcall::Funcall(){}
@@ -994,6 +1056,7 @@ void FloatConst::generate_code(SymbolTable* st){
 	//return "";
 }
 void FloatConst::label(){
+	changed = false;
 	Label = 1;
 }
 FloatConst::FloatConst(float x){
@@ -1014,6 +1077,7 @@ void IntConst::generate_code(SymbolTable* st){
 }
 
 void IntConst::label(){
+	changed = false;
 	Label = 1;
 }
 
@@ -1035,6 +1099,7 @@ void StringConst::generate_code(SymbolTable* st){
 }
 
 void StringConst::label(){
+	changed = false;
 	Label = 1;
 }
 
@@ -1076,6 +1141,7 @@ void Identifier::generate_code_addr( SymbolTable* st){
 
 
 void Identifier::label(){
+	changed = false;
 	Label = 1;
 }
 Identifier::Identifier(){}
@@ -1151,6 +1217,7 @@ void Index::generate_code_addr(SymbolTable* st){
 }
 
 void Index::label(){
+	changed = right->changed;
 	Label = 1;
 }
 Index::Index(){}

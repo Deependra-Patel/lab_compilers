@@ -111,6 +111,7 @@ class ExpAst:public abstract_astnode{
 	vector<int> FalseList, TrueList;
 	bool Fall = true;
 	int Label;
+	bool changed = false;
 	virtual void label() = 0;
 };
 class ArrayRef: public ExpAst{
