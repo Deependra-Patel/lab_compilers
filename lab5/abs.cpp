@@ -333,7 +333,7 @@ void Ass::generate_code(SymbolTable* st){
 			gencode("    storef("+ right_reg +", ind("+ regs.back() +"));");
 		}
 		regs.push_back(right_reg);
-		swap();
+		//swap();
 	}
 }
 Ass::Ass(){
