@@ -6,7 +6,7 @@ float fact(int n)
 
 void r(int a)
 {
-	printf("Value of j at present is ",a);
+	print(a);
 }
 void main() {
 	int i;

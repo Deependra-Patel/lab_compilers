@@ -1,7 +1,7 @@
 all: clean lex.cc parse.cc main.cc Scanner.h Scannerbase.h Scanner.ih Parser.h Parserbase.h Parser.ih
 	./sedscript
 	g++   --std=c++0x lex.cc parse.cc main.cc abs.cpp SymbolTable.cpp;
-	./a.out < test-assembly > junk;
+	./a.out < testC > junk;
 
 data: 
 	@echo "\nOutput:"
@@ -49,7 +49,7 @@ lex:   lex.cc  main.cc
 run:
 	rm -f graph.gv graph.ps 
 	echo "digraph G { " >> graph.gv
-	./a.out < test-assembly
+	./a.out < testC
 	echo "}" >> graph.gv
 	dot -Tps graph.gv -o graph.ps
 	gnome-open graph.ps

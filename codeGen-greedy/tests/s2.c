@@ -9,6 +9,6 @@ int main() {
 	for(i = 0; i < 5; i++)
 	{
 		print(a[i]);
-	}
-	return 0;*/
+	}*/
+	return 0;
 }
